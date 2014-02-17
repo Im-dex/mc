@@ -1,0 +1,26 @@
+configurations {
+    jflex
+}
+
+ext.lexerDescription = file("${projectDir}/src/main/resources/mc.flex")
+ext.jflexOutput = file("${projectDir}/src/main/java/org/mc/lexer")
+
+sourceSets.main.java.srcDir jflexOutput
+
+dependencies {
+    jflex 'de.jflex:jflex:1.5.0'
+}
+
+task(generateLexer, type: JavaExec) {
+    inputs.file lexerDescription
+    outputs.file jflexOutput
+
+    classpath = configurations.jflex
+    main = 'jflex.Main'
+    args = [
+        '-d', "${jflexOutput}",
+        "${lexerDescription}"
+    ]
+}
+
+compileJava.dependsOn generateLexer

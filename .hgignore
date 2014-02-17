@@ -1,0 +1,6 @@
+syntax: glob
+.gradle/*
+.idea/*
+gradle/*
+*.iml
+gradlew*

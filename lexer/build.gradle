@@ -9,6 +9,7 @@ sourceSets.main.java.srcDir jflexOutput
 
 dependencies {
     jflex 'de.jflex:jflex:1.5.0'
+    //compile 'net.sf.squirrel-sql.thirdparty.non-maven:java-cup:11a'
 }
 
 task(generateLexer, type: JavaExec) {

@@ -1,3 +1,5 @@
+package org.mc.lexer;
+
 /**
  * Created by dex on 24.03.2014.
  */
@@ -7,9 +9,10 @@ public enum TokenType {
     String,
     Eof,
     Comment,
-    WhiteSpace,
     Error,
 
     KwVal,
-    KwVar
+    KwVar,
+
+    OpAssign
 }

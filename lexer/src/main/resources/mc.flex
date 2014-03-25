@@ -1,3 +1,5 @@
+package org.mc.lexer;
+
 import java.math.BigInteger;
 
 %%
@@ -8,6 +10,7 @@ import java.math.BigInteger;
 %column
 %char
 %type Token
+%function nextToken
 
 %eofval{
     return new Token(TokenType.Eof, -1, -1, -1, -1);
@@ -21,6 +24,10 @@ private Token makeToken(TokenType type) {
 
 private Token makeNumberToken(BigInteger value) {
     return new NumberToken(TokenType.Number, yychar, yychar + yylength(), yyline, yycolumn, value);
+}
+
+private Token makeStringToken(TokenType type, String value) {
+    return new StringToken(type, yychar, yychar + yylength(), yyline, yycolumn, value);
 }
 
 private final StringBuilder string = new StringBuilder();
@@ -59,8 +66,11 @@ Identifier = [a-zA-Z_][a-zA-Z_0-9]*
          stringColumn = yycolumn;
          yybegin(STRING); }
 
+    // operators
+    "=" { return makeToken(TokenType.OpAssign); }
+
     // Identifier
-    {Identifier} { return makeToken(TokenType.Id); }
+    {Identifier} { return makeStringToken(TokenType.Id, yytext()); }
 
     // Integer
     {DecInteger} { return makeNumberToken(new BigInteger(yytext())); }
@@ -69,7 +79,8 @@ Identifier = [a-zA-Z_][a-zA-Z_0-9]*
     // comments
     {Comment} { return makeToken(TokenType.Comment); }
     // whitespace
-    {WhiteSpace} { return makeToken(TokenType.WhiteSpace); }
+    {WhiteSpace} { /* ignore */ }
+    {LineEnding} { /* ignore */ }
 }
 
 <STRING> {

@@ -1,0 +1,7 @@
+val id = 0xf0
+/* comment
+ test */
+
+var test = "String \t str"
+// check
+var TEST = 42

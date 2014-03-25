@@ -1,5 +1,5 @@
 subprojects {
-    apply plugin:'java'
+    apply plugin:'scala'
 
     repositories {
         mavenCentral()
@@ -7,4 +7,12 @@ subprojects {
 
     sourceCompatibility = 1.6
     version = '0.1'
+
+    def scalaVersion = "2.10.4"
+    def scalaPath = "org.scala-lang:scala-library:${scalaVersion}"
+
+    dependencies {
+        compile scalaPath
+        testCompile scalaPath
+    }
 }

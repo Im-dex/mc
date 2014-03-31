@@ -7,14 +7,14 @@ package org.mc.lexer;
 public class Token {
 
     public final TokenType type;
-    public final int startOfsset;
+    public final int startOffset;
     public final int endOffset;
     public final int line;
     public final int column;
 
-    public Token(TokenType type, int startOfsset, int endOffset, int line, int column) {
+    public Token(TokenType type, int startOffset, int endOffset, int line, int column) {
         this.type = type;
-        this.startOfsset = startOfsset;
+        this.startOffset = startOffset;
         this.endOffset = endOffset;
         this.line = line;
         this.column = column;

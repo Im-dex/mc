@@ -22,8 +22,14 @@ private Token makeToken(TokenType type) {
     return new Token(type, yychar, yychar + yylength(), yyline, yycolumn);
 }
 
-private Token makeNumberToken(BigInteger value) {
-    return new NumberToken(TokenType.Number, yychar, yychar + yylength(), yyline, yycolumn, value);
+private Token makeNumberToken(String value) {
+    BigInteger intValue = new BigInteger(value);
+    return new NumberToken(TokenType.Number, yychar, yychar + yylength(), yyline, yycolumn, intValue);
+}
+
+private Token makeHexNumberToken(String value) {
+    BigInteger intValue = new BigInteger(value.substring(2), 16);
+    return new NumberToken(TokenType.Number, yychar, yychar + yylength(), yyline, yycolumn, intValue);
 }
 
 private Token makeStringToken(TokenType type, String value) {
@@ -73,8 +79,8 @@ Identifier = [a-zA-Z_][a-zA-Z_0-9]*
     {Identifier} { return makeStringToken(TokenType.Id, yytext()); }
 
     // Integer
-    {DecInteger} { return makeNumberToken(new BigInteger(yytext())); }
-    {HexInteger} { return makeNumberToken(new BigInteger(yytext(), 16)); }
+    {DecInteger} { return makeNumberToken(yytext()); }
+    {HexInteger} { return makeHexNumberToken(yytext()); }
 
     // comments
     {Comment} { return makeToken(TokenType.Comment); }

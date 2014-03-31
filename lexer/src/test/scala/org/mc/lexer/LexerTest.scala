@@ -1,11 +1,16 @@
 package org.mc.lexer
 
-import java.io.FileReader
 import org.scalatest.FlatSpec
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
+import java.io.InputStreamReader
 
+@RunWith(classOf[JUnitRunner])
 class LexerTest extends FlatSpec {
     "Lexemes" should "be as expected" in {
-        val lexer = new Lexer(new FileReader("lex_test.txt"))
+        val resourceStream = this.getClass.getResourceAsStream("/lex_test.txt")
+        val reader = new InputStreamReader(resourceStream)
+        val lexer = new Lexer(reader)
 
         checkToken(lexer.nextToken(), TokenType.KwVal)
         checkId(lexer.nextToken(), "id")
@@ -22,7 +27,9 @@ class LexerTest extends FlatSpec {
     def checkNumber(token: Token, value: BigInt) {
         checkToken(token, TokenType.Number)
         assume(token.isInstanceOf[NumberToken])
-        assert(token.asInstanceOf[NumberToken].value.equals(value))
+        
+        val tokenValue : BigInt = token.asInstanceOf[NumberToken].value
+        assert(tokenValue.equals(value))
     }
 
     def checkString(token: Token, value: String) {

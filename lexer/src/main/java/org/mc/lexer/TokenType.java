@@ -14,5 +14,9 @@ public enum TokenType {
     KwVal,
     KwVar,
 
-    OpAssign
+    OpAssign,
+    OpAdd,
+    OpSub,
+    OpMul,
+    OpDiv
 }

@@ -91,6 +91,10 @@ Identifier = [a-zA-Z_$][a-zA-Z_$0-9]*
 <YYINITIAL, AFTER> {
     // operators
     "=" { resetAfterState(); return makeToken(TokenType.OpAssign); }
+    "+" { resetAfterState(); return makeToken(TokenType.OpAdd); }
+    "-" { resetAfterState(); return makeToken(TokenType.OpSub); }
+    "*" { resetAfterState(); return makeToken(TokenType.OpMul); }
+    "/" { resetAfterState(); return makeToken(TokenType.OpDiv); }
 
     // comments
     {Comment} { resetAfterState(); return makeToken(TokenType.Comment); }

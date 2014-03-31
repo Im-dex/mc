@@ -45,6 +45,12 @@ final class LexerTest extends FlatSpec {
         expectNumber(11)
         expectError()
 
+        expectToken(TokenType.OpAdd)
+        expectToken(TokenType.OpSub)
+        expectToken(TokenType.OpMul)
+        expectToken(TokenType.OpDiv)
+        expectToken(TokenType.OpAssign)
+
         expectToken(TokenType.Eof)
     }
 

@@ -7,3 +7,4 @@ gradlew*
 classes/*
 lexer/build/*
 mclex/build/*
+lexer/src/main/java/org/mc/lexer/Lexer.java

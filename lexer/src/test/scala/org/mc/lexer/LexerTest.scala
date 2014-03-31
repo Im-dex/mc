@@ -31,35 +31,53 @@ final class LexerTest extends FlatSpec {
         expectToken(TokenType.OpAssign)
         expectNumber(42)
 
+        expectId("badId")
+        expectError()
+
+        expectComment()
+
+        expectNumber(0)
+        expectError()
+        expectNumber(17)
+
+        expectComment()
+
+        expectNumber(11)
+        expectError()
+
         expectToken(TokenType.Eof)
     }
 
     def expectId(name: String) {
         val token = expectToken(TokenType.Id)
-        assume(token.isInstanceOf[StringToken])
-        assert(token.asInstanceOf[StringToken].value.equals(name))
+        assume(token.isInstanceOf[DataToken])
+        assert(token.asInstanceOf[DataToken].value.equals(name))
     }
 
     def expectNumber(value: BigInt) {
         val token = expectToken(TokenType.Number)
-        assume(token.isInstanceOf[NumberToken])
+        assume(token.isInstanceOf[DecNumberToken])
 
-        val tokenValue : BigInt = token.asInstanceOf[NumberToken].value
+        val tokenValue : BigInt = token.asInstanceOf[DecNumberToken].value
         assert(tokenValue.equals(value))
     }
 
     def expectString(value: String) {
         val token = expectToken(TokenType.String)
-        assume(token.isInstanceOf[StringToken])
-        assert(token.asInstanceOf[StringToken].value.equals(value))
+        assume(token.isInstanceOf[DataToken])
+        assert(token.asInstanceOf[DataToken].value.equals(value))
     }
 
     def expectComment() {
         expectToken(TokenType.Comment)
     }
 
+    def expectError() {
+        expectToken(TokenType.Error)
+    }
+
     def expectToken(tokenType: TokenType) = {
-        val token= lexer.nextToken()
+        val token = lexer.nextToken()
         assume(token != null)
         assert(token.`type` == tokenType)
         token

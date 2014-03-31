@@ -24,22 +24,28 @@ private Token makeToken(TokenType type) {
 
 private Token makeNumberToken(String value) {
     BigInteger intValue = new BigInteger(value);
-    return new NumberToken(TokenType.Number, yychar, yychar + yylength(), yyline, yycolumn, intValue);
+    return new DecNumberToken(yychar, yychar + yylength(), yyline, yycolumn, intValue);
 }
 
 private Token makeHexNumberToken(String value) {
     BigInteger intValue = new BigInteger(value.substring(2), 16);
-    return new NumberToken(TokenType.Number, yychar, yychar + yylength(), yyline, yycolumn, intValue);
+    return new DecNumberToken(yychar, yychar + yylength(), yyline, yycolumn, intValue);
 }
 
-private Token makeStringToken(TokenType type, String value) {
-    return new StringToken(type, yychar, yychar + yylength(), yyline, yycolumn, value);
+private Token makeDataToken(TokenType type) {
+    return new DataToken(type, yychar, yychar + yylength(), yyline, yycolumn, yytext());
+}
+
+private void resetAfterState() {
+    if (yystate() == AFTER) {
+        yybegin(YYINITIAL);
+    }
 }
 
 private final StringBuilder string = new StringBuilder();
-private int stringBegin = -1;
-private int stringLine = -1;
-private int stringColumn= -1;
+private int begin = -1;
+private int line = -1;
+private int column= -1;
 
 %}
 
@@ -54,52 +60,70 @@ Comment = {SingleLineComment} | {MultiLIneComment}
 DecInteger = 0 | [1-9][0-9]*
 HexInteger = "0x" [0-9a-fA-F]+
 
-Identifier = [a-zA-Z_][a-zA-Z_0-9]*
+Identifier = [a-zA-Z_$][a-zA-Z_$0-9]*
 
 %state STRING
+%state ERROR
+%state AFTER
 
 %%
 
 <YYINITIAL> {
     // keywords
-    "val" { return makeToken(TokenType.KwVal); }
-    "var" { return makeToken(TokenType.KwVar); }
+    "val" { yybegin(AFTER); return makeToken(TokenType.KwVal); }
+    "var" { yybegin(AFTER); return makeToken(TokenType.KwVar); }
 
     // string
     \" { string.setLength(0);
-         stringBegin = yychar;
-         stringLine = yyline;
-         stringColumn = yycolumn;
+         begin = yychar;
+         line = yyline;
+         column = yycolumn;
          yybegin(STRING); }
 
-    // operators
-    "=" { return makeToken(TokenType.OpAssign); }
-
     // Identifier
-    {Identifier} { return makeStringToken(TokenType.Id, yytext()); }
+    {Identifier} { yybegin(AFTER); return makeDataToken(TokenType.Id); }
 
     // Integer
-    {DecInteger} { return makeNumberToken(yytext()); }
-    {HexInteger} { return makeHexNumberToken(yytext()); }
+    {DecInteger} { yybegin(AFTER); return makeNumberToken(yytext()); }
+    {HexInteger} { yybegin(AFTER); return makeHexNumberToken(yytext()); }
+}
+
+<YYINITIAL, AFTER> {
+    // operators
+    "=" { resetAfterState(); return makeToken(TokenType.OpAssign); }
 
     // comments
-    {Comment} { return makeToken(TokenType.Comment); }
+    {Comment} { resetAfterState(); return makeToken(TokenType.Comment); }
+
     // whitespace
-    {WhiteSpace} { /* ignore */ }
-    {LineEnding} { /* ignore */ }
+    {WhiteSpace} { resetAfterState(); }
+    {LineEnding} { resetAfterState(); }
+
+    [^] { string.setLength(0);
+          begin = yychar;
+          line = yyline;
+          column = yycolumn;
+          yybegin(ERROR); }
 }
+
 
 <STRING> {
     \" { yybegin(YYINITIAL);
-         return new StringToken(TokenType.String, stringBegin, yychar, stringLine, stringColumn, string.toString()); }
+         return new DataToken(TokenType.String, begin, yychar, line, column, string.toString()); }
 
-    [^\n\r\"\\]+                   { string.append(yytext()); }
-    \\t                            { string.append('\t'); }
-    \\n                            { string.append('\n'); }
+    [^\n\r\"\\]+    { string.append(yytext()); }
+    \\t             { string.append('\t'); }
+    \\n             { string.append('\n'); }
 
-    \\r                            { string.append('\r'); }
-    \\\"                           { string.append('\"'); }
-    \\                             { string.append('\\'); }
+    \\r             { string.append('\r'); }
+    \\\"            { string.append('\"'); }
+    \\              { string.append('\\'); }
+
+    //TODO: {LineEnding}    { yybegin(ERROR); }
 }
 
-[^] {}
+<ERROR> {
+    {WhiteSpace}|{LineEnding} { yybegin(YYINITIAL);
+                                return new DataToken(TokenType.Error, begin, yychar, line, column, string.toString()); }
+    [^] { string.append(yytext()); }
+}

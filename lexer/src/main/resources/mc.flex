@@ -93,6 +93,8 @@ Identifier = [a-zA-Z_$][a-zA-Z_$0-9]*
 }
 
 <YYINITIAL, AFTER> {
+    ";" { resetAfterState(); return makeToken(TokenType.Semicolon); }
+
     // operators
     "=" { resetAfterState(); return makeToken(TokenType.Assign); }
     "+" { resetAfterState(); return makeToken(TokenType.Plus); }
@@ -108,7 +110,7 @@ Identifier = [a-zA-Z_$][a-zA-Z_$0-9]*
 
     // whitespace
     {WhiteSpace} { resetAfterState(); }
-    {LineEnding} { resetAfterState(); return makeToken(TokenType.Newline); }
+    {LineEnding} { resetAfterState(); }
 
     [^] { string.setLength(0);
           begin = yychar;

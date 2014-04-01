@@ -10,10 +10,11 @@ public enum TokenType {
     Eof,
     Comment,
     Error,
-    Newline,
 
     KwVal,
     KwVar,
+
+    Semicolon,
 
     Assign,
     Plus,

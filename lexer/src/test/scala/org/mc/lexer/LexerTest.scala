@@ -16,17 +16,15 @@ final class LexerTest extends FlatSpec {
         expectId("id")
         expectToken(TokenType.Assign)
         expectNumber(0xf0)
-        expectNewline()
+        expectSemicolon()
 
         expectComment()
-        expectNewline()
-        expectNewline()
 
         expectToken(TokenType.KwVar)
         expectId("test")
         expectToken(TokenType.Assign)
         expectString("String \t str")
-        expectNewline()
+        expectSemicolon()
 
         expectComment()
 
@@ -34,33 +32,29 @@ final class LexerTest extends FlatSpec {
         expectId("TEST")
         expectToken(TokenType.Assign)
         expectNumber(42)
-        expectNewline()
-        expectNewline()
+        expectSemicolon()
 
         expectId("badId")
         expectError()
-        expectNewline()
 
         expectComment()
 
         expectNumber(0)
         expectError()
         expectNumber(17)
-        expectNewline()
-        expectNewline()
+        expectSemicolon()
 
         expectComment()
 
         expectNumber(11)
         expectError()
-        expectNewline()
 
         expectToken(TokenType.Plus)
         expectToken(TokenType.Minus)
         expectToken(TokenType.Times)
         expectToken(TokenType.Divide)
         expectToken(TokenType.Assign)
-        expectNewline()
+        expectSemicolon()
 
         expectToken(TokenType.Eof)
     }
@@ -93,8 +87,8 @@ final class LexerTest extends FlatSpec {
         expectToken(TokenType.Error)
     }
 
-    def expectNewline() {
-        expectToken(TokenType.Newline)
+    def expectSemicolon() {
+        expectToken(TokenType.Semicolon)
     }
 
     def expectToken(tokenType: TokenType) = {

@@ -1,17 +1,17 @@
-val id = 0xf0
+val id = 0xf0;
 /* comment
  test */
 
-var test = "String \t str"
+var test = "String \t str";
 // check
-var TEST = 42
+var TEST = 42;
 
 badId\\
 
 // bad
-023= 17
+023= 17;
 
 // also bad
-11oneone
+11oneone;
 
-+-*/=
++-*/=;

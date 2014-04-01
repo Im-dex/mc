@@ -10,13 +10,17 @@ public enum TokenType {
     Eof,
     Comment,
     Error,
+    Newline,
 
     KwVal,
     KwVar,
 
-    OpAssign,
-    OpAdd,
-    OpSub,
-    OpMul,
-    OpDiv
+    Assign,
+    Plus,
+    Minus,
+    Times,
+    Divide,
+
+    LeftParen,
+    RightParen
 }

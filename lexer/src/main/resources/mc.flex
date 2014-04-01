@@ -36,6 +36,10 @@ private Token makeDataToken(TokenType type) {
     return new DataToken(type, yychar, yychar + yylength(), yyline, yycolumn, yytext());
 }
 
+private Token makeErrorToken() {
+    return new DataToken(TokenType.Error, begin, yychar, line, column, string.toString());
+}
+
 private void resetAfterState() {
     if (yystate() == AFTER) {
         yybegin(YYINITIAL);
@@ -90,18 +94,21 @@ Identifier = [a-zA-Z_$][a-zA-Z_$0-9]*
 
 <YYINITIAL, AFTER> {
     // operators
-    "=" { resetAfterState(); return makeToken(TokenType.OpAssign); }
-    "+" { resetAfterState(); return makeToken(TokenType.OpAdd); }
-    "-" { resetAfterState(); return makeToken(TokenType.OpSub); }
-    "*" { resetAfterState(); return makeToken(TokenType.OpMul); }
-    "/" { resetAfterState(); return makeToken(TokenType.OpDiv); }
+    "=" { resetAfterState(); return makeToken(TokenType.Assign); }
+    "+" { resetAfterState(); return makeToken(TokenType.Plus); }
+    "-" { resetAfterState(); return makeToken(TokenType.Minus); }
+    "*" { resetAfterState(); return makeToken(TokenType.Times); }
+    "/" { resetAfterState(); return makeToken(TokenType.Divide); }
+
+    "(" { resetAfterState(); return makeToken(TokenType.LeftParen); }
+    ")" { resetAfterState(); return makeToken(TokenType.RightParen); }
 
     // comments
     {Comment} { resetAfterState(); return makeToken(TokenType.Comment); }
 
     // whitespace
     {WhiteSpace} { resetAfterState(); }
-    {LineEnding} { resetAfterState(); }
+    {LineEnding} { resetAfterState(); return makeToken(TokenType.Newline); }
 
     [^] { string.setLength(0);
           begin = yychar;
@@ -128,6 +135,6 @@ Identifier = [a-zA-Z_$][a-zA-Z_$0-9]*
 
 <ERROR> {
     {WhiteSpace}|{LineEnding} { yybegin(YYINITIAL);
-                                return new DataToken(TokenType.Error, begin, yychar, line, column, string.toString()); }
+                                return makeErrorToken(); }
     [^] { string.append(yytext()); }
 }

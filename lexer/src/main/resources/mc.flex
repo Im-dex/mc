@@ -1,6 +1,9 @@
 package org.mc.lexer;
 
+import java.lang.reflect.Constructor;
+import scala.math.BigInt;
 import java.math.BigInteger;
+import java.lang.reflect.InvocationTargetException;
 
 %%
 
@@ -9,35 +12,46 @@ import java.math.BigInteger;
 %line
 %column
 %char
+%public
 %type Token
 %function nextToken
 
 %eofval{
-    return new Token(TokenType.Eof, -1, -1, -1, -1);
+    return new EofToken(-1, -1, -1, -1);
 %eofval}
 
 %{
 
-private Token makeToken(TokenType type) {
-    return new Token(type, yychar, yychar + yylength(), yyline, yycolumn);
+private <T extends Token> T makeToken(Class<T> type) {
+    try {
+        Constructor<T> constructor = type.getDeclaredConstructor(int.class, int.class, int.class, int.class);
+        return constructor.newInstance(yychar, yychar + yylength(), yyline, yycolumn);
+    } catch (NoSuchMethodException e) {
+        throw new IllegalStateException(e);
+    }
+    catch (InvocationTargetException e) {
+        throw new IllegalStateException(e);
+    }
+    catch (InstantiationException e) {
+        throw new IllegalStateException(e);
+    }
+    catch (IllegalAccessException e) {
+        throw new IllegalStateException(e);
+    }
 }
 
 private Token makeNumberToken(String value) {
     BigInteger intValue = new BigInteger(value);
-    return new DecNumberToken(yychar, yychar + yylength(), yyline, yycolumn, intValue);
+    return new DecNumberToken(yychar, yychar + yylength(), yyline, yycolumn, new BigInt(intValue));
 }
 
 private Token makeHexNumberToken(String value) {
     BigInteger intValue = new BigInteger(value.substring(2), 16);
-    return new DecNumberToken(yychar, yychar + yylength(), yyline, yycolumn, intValue);
+    return new DecNumberToken(yychar, yychar + yylength(), yyline, yycolumn, new BigInt(intValue));
 }
 
-private Token makeDataToken(TokenType type) {
-    return new DataToken(type, yychar, yychar + yylength(), yyline, yycolumn, yytext());
-}
-
-private Token makeErrorToken() {
-    return new DataToken(TokenType.Error, begin, yychar, line, column, string.toString());
+private IdToken makeIdToken() {
+    return new IdToken(yychar, yychar + yylength(), yyline, yycolumn, yytext());
 }
 
 private void resetAfterState() {
@@ -74,8 +88,8 @@ Identifier = [a-zA-Z_$][a-zA-Z_$0-9]*
 
 <YYINITIAL> {
     // keywords
-    "val" { yybegin(AFTER); return makeToken(TokenType.KwVal); }
-    "var" { yybegin(AFTER); return makeToken(TokenType.KwVar); }
+    "val" { yybegin(AFTER); return makeToken(KwValToken.class); }
+    "var" { yybegin(AFTER); return makeToken(KwVarToken.class); }
 
     // string
     \" { string.setLength(0);
@@ -85,7 +99,7 @@ Identifier = [a-zA-Z_$][a-zA-Z_$0-9]*
          yybegin(STRING); }
 
     // Identifier
-    {Identifier} { yybegin(AFTER); return makeDataToken(TokenType.Id); }
+    {Identifier} { yybegin(AFTER); return makeIdToken(); }
 
     // Integer
     {DecInteger} { yybegin(AFTER); return makeNumberToken(yytext()); }
@@ -93,20 +107,20 @@ Identifier = [a-zA-Z_$][a-zA-Z_$0-9]*
 }
 
 <YYINITIAL, AFTER> {
-    ";" { resetAfterState(); return makeToken(TokenType.Semicolon); }
+    ";" { resetAfterState(); return makeToken(SemicolonToken.class); }
 
     // operators
-    "=" { resetAfterState(); return makeToken(TokenType.Assign); }
-    "+" { resetAfterState(); return makeToken(TokenType.Plus); }
-    "-" { resetAfterState(); return makeToken(TokenType.Minus); }
-    "*" { resetAfterState(); return makeToken(TokenType.Times); }
-    "/" { resetAfterState(); return makeToken(TokenType.Divide); }
+    "=" { resetAfterState(); return makeToken(AssignToken.class); }
+    "+" { resetAfterState(); return makeToken(PlusToken.class);}
+    "-" { resetAfterState(); return makeToken(MinusToken.class); }
+    "*" { resetAfterState(); return makeToken(TimesToken.class); }
+    "/" { resetAfterState(); return makeToken(DivideToken.class); }
 
-    "(" { resetAfterState(); return makeToken(TokenType.LeftParen); }
-    ")" { resetAfterState(); return makeToken(TokenType.RightParen); }
+    "(" { resetAfterState(); return makeToken(LeftParenToken.class); }
+    ")" { resetAfterState(); return makeToken(RightParenToken.class); }
 
     // comments
-    {Comment} { resetAfterState(); return makeToken(TokenType.Comment); }
+    {Comment} { resetAfterState(); return makeToken(CommentToken.class); }
 
     // whitespace
     {WhiteSpace} { resetAfterState(); }
@@ -122,7 +136,7 @@ Identifier = [a-zA-Z_$][a-zA-Z_$0-9]*
 
 <STRING> {
     \" { yybegin(YYINITIAL);
-         return new DataToken(TokenType.String, begin, yychar, line, column, string.toString()); }
+         return new StringToken(begin, yychar, line, column, string.toString()); }
 
     [^\n\r\"\\]+    { string.append(yytext()); }
     \\t             { string.append('\t'); }
@@ -137,6 +151,6 @@ Identifier = [a-zA-Z_$][a-zA-Z_$0-9]*
 
 <ERROR> {
     {WhiteSpace}|{LineEnding} { yybegin(YYINITIAL);
-                                return makeErrorToken(); }
+                                return makeToken(ErrorToken.class); }
     [^] { string.append(yytext()); }
 }

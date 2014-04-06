@@ -28,9 +28,10 @@ non terminal expr_list, expr_part;
 non terminal Ast expr;
 
 // precedences
-precedence left PLUS, MINUS;
-precedence left TIMES, DIVIDE;
-precedence left UNARY_MINUS;
+precedence right ASSIGN;
+precedence left  PLUS, MINUS;
+precedence left  TIMES, DIVIDE;
+precedence left  UNARY_MINUS;
 
 // grammar
 expr_list ::= expr_list expr_part
@@ -52,6 +53,9 @@ expr ::= expr:e1 PLUS expr:e2
          |
          expr:e1 DIVIDE expr:e2
          {: RESULT = new BinaryExpression(e1, e2, new DivOperator()); :}
+         |
+         expr:e1 ASSIGN expr:e2
+         {: RESULT = new BinaryExpression(e1, e2, new AssignOperator()); :}
          |
          ID:id
          {: RESULT = new IdConstant(id); :}

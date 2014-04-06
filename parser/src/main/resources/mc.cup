@@ -1,0 +1,71 @@
+package org.mc.parser;
+
+import java_cup.runtime.*;
+import org.mc.lexer.*;
+
+parser code {:
+
+public static scala.Option<UnaryOperator> makeUnaryOperator() {
+    return scala.Option.<UnaryOperator>apply(null);
+}
+
+public static scala.Option<UnaryOperator> makeUnaryOperator(UnaryOperator operator) {
+    return scala.Option.<UnaryOperator>apply(operator);
+}
+
+:}
+
+// terminals
+terminal VAR, VAL;
+terminal SEMICOLON, ASSIGN, PLUS, MINUS, TIMES, DIVIDE;
+terminal UNARY_MINUS, LPAREN, RPAREN;
+terminal IdToken        ID;
+terminal StringToken    STRING;
+terminal DecNumberToken DEC_NUMBER;
+
+// non-terminals
+non terminal expr_list, expr_part;
+non terminal Ast expr;
+
+// precedences
+precedence left PLUS, MINUS;
+precedence left TIMES, DIVIDE;
+precedence left UNARY_MINUS;
+
+// grammar
+expr_list ::= expr_list expr_part
+              |
+              expr_part;
+
+expr_part ::= expr SEMICOLON
+              |
+              error SEMICOLON;
+
+expr ::= expr:e1 PLUS expr:e2
+         {: RESULT = new BinaryExpression(e1, e2, new AddOperator()); :}
+         |
+         expr:e1 MINUS expr:e2
+         {: RESULT = new BinaryExpression(e1, e2, new SubOperator()); :}
+         |
+         expr:e1 TIMES expr:e2
+         {: RESULT = new BinaryExpression(e1, e2, new MulOperator()); :}
+         |
+         expr:e1 DIVIDE expr:e2
+         {: RESULT = new BinaryExpression(e1, e2, new DivOperator()); :}
+         |
+         ID:id
+         {: RESULT = new IdConstant(id); :}
+         |
+         STRING:str
+         {: RESULT = new StringConstant(str); :}
+         |
+         DEC_NUMBER:num
+         {: RESULT = new DecConstant(num); :}
+         |
+         MINUS expr:e
+         {: RESULT = new UnaryExpression(e, Parser.makeUnaryOperator(new SubOperator())); :}
+         %prec UNARY_MINUS
+         |
+         LPAREN expr:e RPAREN
+         {: RESULT = e; :}
+         ;

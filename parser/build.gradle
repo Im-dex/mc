@@ -1,0 +1,37 @@
+configurations {
+    jcup
+}
+
+ext.parserDescription = file("${projectDir}/src/main/resources/mc.cup")
+ext.jcupOutput = file("${projectDir}/src/main/java/org/mc/parser")
+
+//sourceSets.main.java.srcDir jcupOutput
+
+def jcupLib = 'net.sf.squirrel-sql.thirdparty.non-maven:java-cup:11a'
+
+dependencies {
+    jcup jcupLib
+    compile jcupLib
+    compile project(':lexer')
+}
+
+task(generateParser, type: JavaExec) {
+    inputs.file parserDescription
+    outputs.file jcupOutput
+
+    classpath = configurations.jcup
+    main = 'java_cup.Main'
+    args = [
+            "-destdir", "${jcupOutput}",
+            "-parser", "Parser",
+            "${parserDescription}"
+    ]
+}
+
+compileScala.dependsOn generateParser
+
+compileScala.taskDependencies.values = compileScala.taskDependencies.values - 'compileJava'
+compileJava.dependsOn compileScala
+
+sourceSets.main.scala.srcDir "src/main/java"
+sourceSets.main.java.srcDirs = []

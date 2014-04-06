@@ -2,7 +2,6 @@ package org.mc.parser
 
 import java_cup.runtime.Scanner
 import java_cup.runtime.Symbol
-import scala.util.parsing.input.StreamReader
 import org.mc.lexer._
 import org.mc.lexer.DecNumberToken
 import org.mc.lexer.StringToken

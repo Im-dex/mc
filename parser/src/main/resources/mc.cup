@@ -1,7 +1,9 @@
 package org.mc.parser;
 
-import java_cup.runtime.*;
 import org.mc.lexer.*;
+import scala.collection.JavaConversions;
+import scala.collection.immutable.Seq;
+import java.util.ArrayList;
 
 parser code {:
 
@@ -11,6 +13,22 @@ public static scala.Option<UnaryOperator> makeUnaryOperator() {
 
 public static scala.Option<UnaryOperator> makeUnaryOperator(UnaryOperator operator) {
     return scala.Option.<UnaryOperator>apply(operator);
+}
+
+public static ExpressionList makeExpressionList(Ast value) {
+    java.util.List<Ast> list = new ArrayList<Ast>();
+    list.add(value);
+    Seq<Ast> result = JavaConversions.asScalaBuffer(list).toList();
+    return new ExpressionList(result);
+}
+
+public static ExpressionList makeExpressionList(Seq<Ast> list, Ast value) {
+    java.util.List<Ast> immutableList = JavaConversions.seqAsJavaList(list);
+    java.util.List<Ast> mutableList = new ArrayList<Ast>();
+    mutableList.addAll(immutableList);
+    mutableList.add(value);
+    Seq<Ast> result = JavaConversions.asScalaBuffer(mutableList).toList();
+    return new ExpressionList(result);
 }
 
 :}
@@ -24,8 +42,9 @@ terminal StringToken    STRING;
 terminal DecNumberToken DEC_NUMBER;
 
 // non-terminals
-non terminal expr_list, expr_part;
-non terminal Ast expr;
+non terminal ExpressionList ast;
+non terminal Ast expr_part, expr;
+non terminal Ast val_definition, var_definition;
 
 // precedences
 precedence right ASSIGN;
@@ -34,13 +53,25 @@ precedence left  TIMES, DIVIDE;
 precedence left  UNARY_MINUS;
 
 // grammar
-expr_list ::= expr_list expr_part
-              |
-              expr_part;
+ast ::= ast:self expr_part:exprPart
+        {: RESULT = Parser.makeExpressionList(self.children(), exprPart); :}
+        |
+        expr_part:exprPart
+        {: RESULT = Parser.makeExpressionList(exprPart); :}
+        ;
 
-expr_part ::= expr SEMICOLON
+expr_part ::= expr:e SEMICOLON
+              {: RESULT = e; :}
               |
-              error SEMICOLON;
+              val_definition:val
+              {: RESULT = val; :}
+              |
+              var_definition:var
+              {: RESULT = var; :}
+              |
+              error SEMICOLON
+              {: RESULT = new ErrorExpression(); :}
+              ;
 
 expr ::= expr:e1 PLUS expr:e2
          {: RESULT = new BinaryExpression(e1, e2, new AddOperator()); :}
@@ -73,3 +104,11 @@ expr ::= expr:e1 PLUS expr:e2
          LPAREN expr:e RPAREN
          {: RESULT = e; :}
          ;
+
+val_definition ::= VAL ID:id ASSIGN expr:e
+                   {: RESULT = new ValueDefinition(id, e); :}
+                   ;
+
+var_definition ::= VAR ID:id ASSIGN expr:e
+                   {: RESULT = new VariableDefinition(id, e); :}
+                   ;

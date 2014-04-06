@@ -4,6 +4,7 @@ import org.scalatest.FlatSpec
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import java.io.InputStreamReader
+import scala.reflect.ClassTag
 
 @RunWith(classOf[JUnitRunner])
 final class LexerTest extends FlatSpec {
@@ -12,89 +13,74 @@ final class LexerTest extends FlatSpec {
     private val lexer = new Lexer(reader)
 
     "Lexemes" should "be as expected" in {
-        expectToken(TokenType.KwVal)
+        expectToken[KwValToken]()
         expectId("id")
-        expectToken(TokenType.Assign)
+        expectToken[AssignToken]()
         expectNumber(0xf0)
-        expectSemicolon()
+        expectToken[SemicolonToken]()
 
-        expectComment()
+        expectToken[CommentToken]()
 
-        expectToken(TokenType.KwVar)
+        expectToken[KwVarToken]()
         expectId("test")
-        expectToken(TokenType.Assign)
+        expectToken[AssignToken]()
         expectString("String \t str")
-        expectSemicolon()
+        expectToken[SemicolonToken]()
 
-        expectComment()
+        expectToken[CommentToken]()
 
-        expectToken(TokenType.KwVar)
+        expectToken[KwVarToken]()
         expectId("TEST")
-        expectToken(TokenType.Assign)
+        expectToken[AssignToken]()
         expectNumber(42)
-        expectSemicolon()
+        expectToken[SemicolonToken]()
 
         expectId("badId")
-        expectError()
+        expectToken[ErrorToken]()
 
-        expectComment()
+        expectToken[CommentToken]()
 
         expectNumber(0)
-        expectError()
+        expectToken[ErrorToken]()
         expectNumber(17)
-        expectSemicolon()
+        expectToken[SemicolonToken]()
 
-        expectComment()
+        expectToken[CommentToken]()
 
         expectNumber(11)
-        expectError()
+        expectToken[ErrorToken]()
 
-        expectToken(TokenType.Plus)
-        expectToken(TokenType.Minus)
-        expectToken(TokenType.Times)
-        expectToken(TokenType.Divide)
-        expectToken(TokenType.Assign)
-        expectSemicolon()
+        expectToken[PlusToken]()
+        expectToken[MinusToken]()
+        expectToken[TimesToken]()
+        expectToken[DivideToken]()
+        expectToken[AssignToken]()
+        expectToken[SemicolonToken]()
 
-        expectToken(TokenType.Eof)
+        expectToken[EofToken]()
     }
 
     def expectId(name: String) {
-        val token = expectToken(TokenType.Id)
-        assume(token.isInstanceOf[DataToken])
-        assert(token.asInstanceOf[DataToken].value.equals(name))
+        val token = expectToken[IdToken]()
+        assert(token.asInstanceOf[IdToken].name.equals(name))
     }
 
     def expectNumber(value: BigInt) {
-        val token = expectToken(TokenType.Number)
-        assume(token.isInstanceOf[DecNumberToken])
-
-        val tokenValue : BigInt = token.asInstanceOf[DecNumberToken].value
-        assert(tokenValue.equals(value))
+        val token = expectToken[DecNumberToken]()
+        assert(token.asInstanceOf[DecNumberToken].value.equals(value))
     }
 
     def expectString(value: String) {
-        val token = expectToken(TokenType.String)
-        assume(token.isInstanceOf[DataToken])
-        assert(token.asInstanceOf[DataToken].value.equals(value))
+        val token = expectToken[StringToken]()
+        assert(token.asInstanceOf[StringToken].value.equals(value))
     }
 
-    def expectComment() {
-        expectToken(TokenType.Comment)
-    }
-
-    def expectError() {
-        expectToken(TokenType.Error)
-    }
-
-    def expectSemicolon() {
-        expectToken(TokenType.Semicolon)
-    }
-
-    def expectToken(tokenType: TokenType) = {
+    def expectToken[T <: Token : ClassTag]() = {
         val token = lexer.nextToken()
         assume(token != null)
-        assert(token.`type` == tokenType)
+
+        val classOfT = implicitly[ClassTag[T]].runtimeClass
+        assert(classOfT.isInstance(token))
         token
     }
 }

@@ -7,10 +7,17 @@ import org.mc.lexer._
 import org.mc.lexer.DecNumberToken
 import org.mc.lexer.StringToken
 import org.mc.lexer.IdToken
+import java.io.InputStreamReader
 
-final class CupScanner(val reader: StreamReader) extends Scanner
-                                                 with Immutable {
-    val scanner = new Lexer(reader.asInstanceOf[java.io.Reader])
+object CupScanner {
+    def apply(reader: InputStreamReader) = {
+        new CupScanner(reader)
+    }
+}
+
+final class CupScanner(val reader: InputStreamReader) extends Scanner
+                                                      with Immutable {
+    val scanner = new Lexer(reader)
 
     @throws(classOf[Exception])
     override def next_token(): Symbol = {

@@ -12,7 +12,6 @@ final class ParserTest extends FlatSpec {
     private val scanner = CupScanner(reader)
     private val parser = new Parser(scanner)
 
-    "Parsing" should "be as expexted" in {
-        val result = parser.parse()
-    }
+    val result = parser.debug_parse()
+    val r = result
 }

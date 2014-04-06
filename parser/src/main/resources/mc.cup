@@ -63,10 +63,10 @@ ast ::= ast:self expr_part:exprPart
 expr_part ::= expr:e SEMICOLON
               {: RESULT = e; :}
               |
-              val_definition:val
+              val_definition:val SEMICOLON
               {: RESULT = val; :}
               |
-              var_definition:var
+              var_definition:var SEMICOLON
               {: RESULT = var; :}
               |
               error SEMICOLON

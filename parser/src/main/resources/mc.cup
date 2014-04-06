@@ -63,7 +63,7 @@ expr ::= expr:e1 PLUS expr:e2
          {: RESULT = new DecConstant(num); :}
          |
          MINUS expr:e
-         {: RESULT = new UnaryExpression(e, Parser.makeUnaryOperator(new SubOperator())); :}
+         {: RESULT = new UnaryExpression(e, Parser.makeUnaryOperator(new UnarySubOperator())); :}
          %prec UNARY_MINUS
          |
          LPAREN expr:e RPAREN

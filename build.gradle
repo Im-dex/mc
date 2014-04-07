@@ -6,14 +6,16 @@ subprojects {
     }
 
     sourceCompatibility = 1.6
+    targetCompatibility = 1.6
     version = '0.1'
 
     def scalaVersion = "2.10.4"
     def scalaPath = "org.scala-lang:scala-library:${scalaVersion}"
+    def scalaCompilerPath = "org.scala-lang:scala-compiler:${scalaVersion}"
 
     dependencies {
         compile scalaPath
-        testCompile scalaPath
+        compile scalaCompilerPath
 
         testCompile group: 'org.scalatest', name: 'scalatest_2.10', version: '2.1.0'
         testCompile 'junit:junit:4.11'

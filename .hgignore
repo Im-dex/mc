@@ -7,7 +7,8 @@ gradlew*
 classes/*
 lexer/build/*
 mclex/build/*
-lexer/src/main/java/org/mc/lexer/Lexer.java
+lexer/src/main/java/*
 parser/build/*
-parser/src/main/java/org/mc/parser/Parser.java
-parser/src/main/java/org/mc/parser/sym.java
+parser/src/main/java/*
+mcc\build\*
+mcrepl\build\*

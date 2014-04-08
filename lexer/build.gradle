@@ -2,26 +2,33 @@ configurations {
     jflex
 }
 
-ext.lexerDescription = file("${projectDir}/src/main/resources/mc.flex")
-ext.jflexOutput = file("${projectDir}/src/main/java/org/mc/lexer")
-
-//sourceSets.main.java.srcDir jflexOutput
+ext {
+    lexerDescription = file("${projectDir}/src/main/resources/mc.flex")
+    jflexOutput = file("${projectDir}/src/main/java/org/mc/lexer")
+    jflexLib = 'de.jflex:jflex:1.5.0'
+}
 
 dependencies {
-    jflex 'de.jflex:jflex:1.5.0'
+    jflex ext.jflexLib
+}
+
+task createSourceDirectories() << {
+    project.jflexOutput.mkdirs()
 }
 
 task(generateLexer, type: JavaExec) {
-    inputs.file lexerDescription
-    outputs.file jflexOutput
+    inputs.file project.lexerDescription
+    outputs.file project.jflexOutput
 
     classpath = configurations.jflex
     main = 'jflex.Main'
     args = [
-        '-d', "${jflexOutput}",
-        "${lexerDescription}"
+        '-d', "${project.jflexOutput}",
+        "${project.lexerDescription}"
     ]
 }
+
+generateLexer.dependsOn createSourceDirectories
 
 compileScala.dependsOn generateLexer
 

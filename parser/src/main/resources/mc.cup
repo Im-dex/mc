@@ -1,9 +1,9 @@
 package org.mc.parser;
 
 import org.mc.lexer.*;
-import scala.collection.JavaConversions;
-import scala.collection.immutable.Seq;
-import java.util.ArrayList;
+import scala.collection.immutable.List;
+import scala.collection.immutable.List$;
+import scala.collection.immutable.$colon$colon;
 
 parser code {:
 
@@ -15,36 +15,31 @@ public static scala.Option<UnaryOperator> makeUnaryOperator(UnaryOperator operat
     return scala.Option.<UnaryOperator>apply(operator);
 }
 
-public static ExpressionList makeExpressionList(Ast value) {
-    java.util.List<Ast> list = new ArrayList<Ast>();
-    list.add(value);
-    Seq<Ast> result = JavaConversions.asScalaBuffer(list).toList();
-    return new ExpressionList(result);
+public static ExpressionsBlock makeExpressionsBlock(Ast value) {
+    List<Ast> list = List$.MODULE$.empty();
+    return extendExpressionsBlock(list, value);
 }
 
-public static ExpressionList makeExpressionList(Seq<Ast> list, Ast value) {
-    java.util.List<Ast> immutableList = JavaConversions.seqAsJavaList(list);
-    java.util.List<Ast> mutableList = new ArrayList<Ast>();
-    mutableList.addAll(immutableList);
-    mutableList.add(value);
-    Seq<Ast> result = JavaConversions.asScalaBuffer(mutableList).toList();
-    return new ExpressionList(result);
+public static ExpressionsBlock extendExpressionsBlock(List<Ast> list, Ast value) {
+    list = new $colon$colon(value, list);
+    return new ExpressionsBlock(list);
 }
 
 :}
 
 // terminals
 terminal VAR, VAL;
-terminal SEMICOLON, ASSIGN, PLUS, MINUS, TIMES, DIVIDE;
+terminal SEMICOLON, COLON, ASSIGN, PLUS, MINUS, TIMES, DIVIDE;
 terminal UNARY_MINUS, LPAREN, RPAREN;
 terminal IdToken        ID;
 terminal StringToken    STRING;
 terminal DecNumberToken DEC_NUMBER;
 
 // non-terminals
-non terminal ExpressionList ast;
+non terminal ExpressionsBlock ast;
 non terminal Ast expr_part, expr;
 non terminal Ast val_definition, var_definition;
+non terminal IdToken type_specification;
 
 // precedences
 precedence right ASSIGN;
@@ -54,10 +49,10 @@ precedence left  UNARY_MINUS;
 
 // grammar
 ast ::= ast:self expr_part:exprPart
-        {: RESULT = Parser.makeExpressionList(self.children(), exprPart); :}
+        {: RESULT = Parser.extendExpressionsBlock(self.expressions(), exprPart); :}
         |
         expr_part:exprPart
-        {: RESULT = Parser.makeExpressionList(exprPart); :}
+        {: RESULT = Parser.makeExpressionsBlock(exprPart); :}
         ;
 
 expr_part ::= expr:e SEMICOLON
@@ -105,10 +100,20 @@ expr ::= expr:e1 PLUS expr:e2
          {: RESULT = e; :}
          ;
 
-val_definition ::= VAL ID:id ASSIGN expr:e
+type_specification ::= COLON ID:id
+         {: RESULT = id; :}
+         ;
+
+val_definition ::= VAL ID:id type_specification:type ASSIGN expr:e
+                   {: RESULT = new ValueDefinition(id, e); :}
+                   |
+                   VAL ID:id ASSIGN expr:e
                    {: RESULT = new ValueDefinition(id, e); :}
                    ;
 
-var_definition ::= VAR ID:id ASSIGN expr:e
+var_definition ::= VAR ID:id type_specification:type ASSIGN expr:e
+                   {: RESULT = new VariableDefinition(id, e); :}
+                   |
+                   VAR ID:id ASSIGN expr:e
                    {: RESULT = new VariableDefinition(id, e); :}
                    ;

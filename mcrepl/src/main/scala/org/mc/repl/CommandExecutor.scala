@@ -2,7 +2,6 @@ package org.mc.repl
 
 import org.mc.parser._
 import java.io.{InputStreamReader, ByteArrayInputStream}
-import org.mc.parser.ExpressionList
 
 object CommandExecutor {
     def apply() = {
@@ -26,7 +25,7 @@ final class CommandExecutor {
 
     private def execCode(code: String) {
         val stream = new ByteArrayInputStream(code.getBytes("UTF-8"))
-        val scanner = CupScanner(new InputStreamReader(stream))
+        val scanner = McScanner(new InputStreamReader(stream))
         val parser = new Parser(scanner)
 
         val ast = parser.parse()
@@ -34,11 +33,11 @@ final class CommandExecutor {
     }
 
     private def printData(ast: Ast, depth: Int) {
-        print("\t" * depth)
+        print("  " * depth)
 
         ast match {
-            case ExpressionList(children) =>
-                children.foreach(child => printDataLn(child, depth))
+            case ExpressionsBlock(expressions) =>
+                expressions.foreach(expression => printDataLn(expression, depth))
 
             case BinaryExpression(left, right, operator) =>
                 printOperator(operator)
@@ -65,12 +64,12 @@ final class CommandExecutor {
                 println(token.value)
 
             case ValueDefinition(token, init) =>
-                println(s"New value '${token.name}'")
-                printDataLn(init, depth + 1)
+                println(s"New value '${token.name}' = ")
+                printDataLn(init, depth)
 
             case VariableDefinition(token, init) =>
-                println(s"New variable '${token.name}'")
-                printDataLn(init, depth + 1)
+                println(s"New variable '${token.name}'= ")
+                printDataLn(init, depth)
         }
     }
 

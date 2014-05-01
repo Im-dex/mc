@@ -1,7 +1,7 @@
 package org.mc.mcc
 
 import java.io.{InputStreamReader, InputStream}
-import org.mc.parser.{Ast, Parser, CupScanner}
+import org.mc.parser.{Ast, Parser, McScanner}
 
 object ModuleCompiler {
     def apply(moduleStream: InputStream) = {
@@ -11,7 +11,7 @@ object ModuleCompiler {
 
 final class ModuleCompiler(val moduleStream: InputStream) extends Immutable {
     private val streamReader = new InputStreamReader(moduleStream)
-    private val scanner = CupScanner(streamReader)
+    private val scanner = McScanner(streamReader)
     private val parser = new Parser(scanner)
 
     def parse(): Ast = {

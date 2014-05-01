@@ -1,5 +1,4 @@
 include "lexer"
 include "parser"
-include "mclex"
 include "mcrepl"
 

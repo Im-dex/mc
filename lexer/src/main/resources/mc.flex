@@ -7,7 +7,7 @@ import java.lang.reflect.InvocationTargetException;
 
 %%
 
-%class Lexer
+%class JFlexLexer
 %unicode
 %line
 %column
@@ -17,15 +17,15 @@ import java.lang.reflect.InvocationTargetException;
 %function nextToken
 
 %eofval{
-    return new EofToken(-1, -1, -1, -1);
+    return new EofToken("", -1, -1);
 %eofval}
 
 %{
 
 private <T extends Token> T makeToken(Class<T> type) {
     try {
-        Constructor<T> constructor = type.getDeclaredConstructor(int.class, int.class, int.class, int.class);
-        return constructor.newInstance(yychar, yychar + yylength(), yyline, yycolumn);
+        Constructor<T> constructor = type.getDeclaredConstructor(String.class, int.class, int.class);
+        return constructor.newInstance(yytext(), yyline, yycolumn);
     } catch (NoSuchMethodException e) {
         throw new IllegalStateException(e);
     }
@@ -42,16 +42,16 @@ private <T extends Token> T makeToken(Class<T> type) {
 
 private Token makeNumberToken(String value) {
     BigInteger intValue = new BigInteger(value);
-    return new DecNumberToken(yychar, yychar + yylength(), yyline, yycolumn, new BigInt(intValue));
+    return new DecNumberToken(yytext(), yyline, yycolumn, new BigInt(intValue));
 }
 
 private Token makeHexNumberToken(String value) {
     BigInteger intValue = new BigInteger(value.substring(2), 16);
-    return new DecNumberToken(yychar, yychar + yylength(), yyline, yycolumn, new BigInt(intValue));
+    return new DecNumberToken(yytext(), yyline, yycolumn, new BigInt(intValue));
 }
 
 private IdToken makeIdToken() {
-    return new IdToken(yychar, yychar + yylength(), yyline, yycolumn, yytext());
+    return new IdToken(yytext(), yyline, yycolumn, yytext());
 }
 
 private void resetAfterState() {
@@ -108,6 +108,7 @@ Identifier = [a-zA-Z_$][a-zA-Z_$0-9]*
 
 <YYINITIAL, AFTER> {
     ";" { resetAfterState(); return makeToken(SemicolonToken.class); }
+    ":" { resetAfterState(); return makeToken(ColonToken.class); }
 
     // operators
     "=" { resetAfterState(); return makeToken(AssignToken.class); }
@@ -136,7 +137,7 @@ Identifier = [a-zA-Z_$][a-zA-Z_$0-9]*
 
 <STRING> {
     \" { yybegin(YYINITIAL);
-         return new StringToken(begin, yychar, line, column, string.toString()); }
+         return new StringToken("\"" + string.toString() + "\"", line, column, string.toString()); }
 
     [^\n\r\"\\]+    { string.append(yytext()); }
     \\t             { string.append('\t'); }

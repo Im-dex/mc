@@ -38,29 +38,31 @@ final class McScanner(val reader: InputStreamReader) extends Scanner
 
     @throws(classOf[SkipTokenException])
     private[this] def extractType(token: Token): Int = token match {
-        case _: IdToken         => sym.ID
-        case _: StringToken     => sym.STRING
-        case _: DecNumberToken  => sym.DEC_NUMBER
+        case _: IdToken              => sym.ID
+        case _: StringToken          => sym.STRING
+        case _: DecNumberToken       => sym.DEC_NUMBER
 
-        case _: EofToken        => sym.EOF
-        case _: CommentToken    => throw SkipTokenException("Comment")
-        case _: ErrorToken      => sym.error
+        case _: EofToken             => sym.EOF
+        case _: CommentToken         => throw SkipTokenException("Comment")
+        case _: ErrorToken           => sym.error
 
-        case _: KwValToken      => sym.VAL
-        case _: KwVarToken      => sym.VAR
+        case _: KwValToken           => sym.VAL
+        case _: KwVarToken           => sym.VAR
 
-        case _: SemicolonToken  => sym.SEMICOLON
-        case _: ColonToken      => sym.COLON
+        case _: SemicolonToken       => sym.SEMICOLON
+        case _: ColonToken           => sym.COLON
 
-        case _: AssignToken     => sym.ASSIGN
-        case _: PlusToken       => sym.PLUS
-        case _: MinusToken      => sym.MINUS
-        case _: TimesToken      => sym.TIMES
-        case _: DivideToken     => sym.DIVIDE
+        case _: AssignToken          => sym.ASSIGN
+        case _: PlusToken            => sym.PLUS
+        case _: MinusToken           => sym.MINUS
+        case _: TimesToken           => sym.TIMES
+        case _: DivideToken          => sym.DIVIDE
 
-        case _: LeftParenToken  => sym.LPAREN
-        case _: RightParenToken => sym.RPAREN
+        case _: OpenParenToken       => sym.OPEN_PAREN
+        case _: CloseParenToken      => sym.CLOSE_PAREN
+        case _: OpenCurlyBraceToken  => sym.OPEN_CURLY_BRACE
+        case _: CloseCurlyBraceToken => sym.CLOSE_CURLY_BRACE
 
-        case _                  => sym.error
+        case _                       => sym.error
     }
 }

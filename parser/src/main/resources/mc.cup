@@ -15,14 +15,14 @@ public static scala.Option<UnaryOperator> makeUnaryOperator(UnaryOperator operat
     return scala.Option.<UnaryOperator>apply(operator);
 }
 
-public static ExpressionsBlock makeExpressionsBlock(Ast value) {
+public static Block makeBlock(Ast value) {
     List<Ast> list = List$.MODULE$.empty();
-    return extendExpressionsBlock(list, value);
+    return extendBlock(list, value);
 }
 
-public static ExpressionsBlock extendExpressionsBlock(List<Ast> list, Ast value) {
+public static Block extendBlock(List<Ast> list, Ast value) {
     list = new $colon$colon(value, list);
-    return new ExpressionsBlock(list);
+    return new Block(list);
 }
 
 :}
@@ -30,13 +30,13 @@ public static ExpressionsBlock extendExpressionsBlock(List<Ast> list, Ast value)
 // terminals
 terminal VAR, VAL;
 terminal SEMICOLON, COLON, ASSIGN, PLUS, MINUS, TIMES, DIVIDE;
-terminal UNARY_MINUS, LPAREN, RPAREN;
+terminal UNARY_MINUS, OPEN_PAREN, CLOSE_PAREN, OPEN_CURLY_BRACE, CLOSE_CURLY_BRACE;
 terminal IdToken        ID;
 terminal StringToken    STRING;
 terminal DecNumberToken DEC_NUMBER;
 
 // non-terminals
-non terminal ExpressionsBlock ast;
+non terminal Block ast;
 non terminal Ast expr_part, expr;
 non terminal Ast val_definition, var_definition;
 non terminal IdToken type_specification;
@@ -49,14 +49,17 @@ precedence left  UNARY_MINUS;
 
 // grammar
 ast ::= ast:self expr_part:exprPart
-        {: RESULT = Parser.extendExpressionsBlock(self.expressions(), exprPart); :}
+        {: RESULT = Parser.extendBlock(self.expressions(), exprPart); :}
         |
         expr_part:exprPart
-        {: RESULT = Parser.makeExpressionsBlock(exprPart); :}
+        {: RESULT = Parser.makeBlock(exprPart); :}
         ;
 
 expr_part ::= expr:e SEMICOLON
               {: RESULT = e; :}
+              |
+              OPEN_CURLY_BRACE expr_part:exprPart CLOSE_CURLY_BRACE
+              {: RESULT = Parser.makeBlock(exprPart); :}
               |
               val_definition:val SEMICOLON
               {: RESULT = val; :}
@@ -96,7 +99,7 @@ expr ::= expr:e1 PLUS expr:e2
          {: RESULT = new UnaryExpression(e, Parser.makeUnaryOperator(new UnarySubOperator())); :}
          %prec UNARY_MINUS
          |
-         LPAREN expr:e RPAREN
+         OPEN_PAREN expr:e CLOSE_PAREN
          {: RESULT = e; :}
          ;
 

@@ -16,6 +16,19 @@ final case class ErrorToken(text: String, line: Int, column: Int) extends Token
 
 final case class KwValToken(text: String, line: Int, column: Int) extends Token
 final case class KwVarToken(text: String, line: Int, column: Int) extends Token
+final case class KwDefToken(text: String, line: Int, column: Int) extends Token
+final case class KwClassToken(text: String, line: Int, column: Int) extends Token
+final case class KwInterfaceToken(text: String, line: Int, column: Int) extends Token
+final case class KwPublicToken(text: String, line: Int, column: Int) extends Token
+final case class KwPrivateToken(text: String, line: Int, column: Int) extends Token
+final case class KwFinalToken(text: String, line: Int, column: Int) extends Token
+final case class KwExtendsToken(text: String, line: Int, column: Int) extends Token
+final case class KwImplementsToken(text: String, line: Int, column: Int) extends Token
+final case class KwOverrideToken(text: String, line: Int, column: Int) extends Token
+final case class KwAsToken(text: String, line: Int, column: Int) extends Token
+final case class KwIsToken(text: String, line: Int, column: Int) extends Token
+final case class KwThisToken(text: String, line: Int, column: Int) extends Token
+final case class KwSuperToken(text: String, line: Int, column: Int) extends Token
 
 final case class SemicolonToken(text: String, line: Int, column: Int) extends Token
 final case class ColonToken(text: String, line: Int, column: Int) extends Token

@@ -88,8 +88,21 @@ Identifier = [a-zA-Z_$][a-zA-Z_$0-9]*
 
 <YYINITIAL> {
     // keywords
-    "val" { yybegin(AFTER); return makeToken(KwValToken.class); }
-    "var" { yybegin(AFTER); return makeToken(KwVarToken.class); }
+    "val"        { yybegin(AFTER); return makeToken(KwValToken.class); }
+    "var"        { yybegin(AFTER); return makeToken(KwVarToken.class); }
+    "def"        { yybegin(AFTER); return makeToken(KwDefToken.class); }
+    "class"      { yybegin(AFTER); return makeToken(KwClassToken.class); }
+    "interface"  { yybegin(AFTER); return makeToken(KwInterfaceToken.class); }
+    "public"     { yybegin(AFTER); return makeToken(KwPublicToken.class); }
+    "private"    { yybegin(AFTER); return makeToken(KwPrivateToken.class); }
+    "final"      { yybegin(AFTER); return makeToken(KwFinalToken.class); }
+    "extends"    { yybegin(AFTER); return makeToken(KwExtendsToken.class); }
+    "implements" { yybegin(AFTER); return makeToken(KwImplementsToken.class); }
+    "override"   { yybegin(AFTER); return makeToken(KwOverrideToken.class); }
+    "as"         { yybegin(AFTER); return makeToken(KwAsToken.class); }
+    "is"         { yybegin(AFTER); return makeToken(KwIsToken.class); }
+    "this"       { yybegin(AFTER); return makeToken(KwThisToken.class); }
+    "super"      { yybegin(AFTER); return makeToken(KwSuperToken.class); }
 
     // string
     \" { string.setLength(0);

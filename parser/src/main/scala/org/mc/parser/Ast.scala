@@ -4,7 +4,7 @@ import org.mc.lexer.{StringToken, DecNumberToken, IdToken}
 
 sealed abstract class Ast extends Immutable
 
-final case class ExpressionsBlock(expressions: List[Ast]) extends Ast
+final case class Block(expressions: List[Ast]) extends Ast
 final case class ErrorExpression() extends Ast
 final case class BinaryExpression(leftOperand: Ast, rightOperand: Ast, operator: Operator) extends Ast
 final case class UnaryExpression(operand: Ast, operator: Option[UnaryOperator]) extends Ast

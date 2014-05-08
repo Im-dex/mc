@@ -117,8 +117,10 @@ Identifier = [a-zA-Z_$][a-zA-Z_$0-9]*
     "*" { resetAfterState(); return makeToken(TimesToken.class); }
     "/" { resetAfterState(); return makeToken(DivideToken.class); }
 
-    "(" { resetAfterState(); return makeToken(LeftParenToken.class); }
-    ")" { resetAfterState(); return makeToken(RightParenToken.class); }
+    "(" { resetAfterState(); return makeToken(OpenParenToken.class); }
+    ")" { resetAfterState(); return makeToken(CloseParenToken.class); }
+    "{" { resetAfterState(); return makeToken(OpenCurlyBraceToken.class); }
+    "}" { resetAfterState(); return makeToken(CloseCurlyBraceToken.class); }
 
     // comments
     {Comment} { resetAfterState(); return makeToken(CommentToken.class); }

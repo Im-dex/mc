@@ -32,6 +32,7 @@ final case class KwSuperToken(text: String, line: Int, column: Int) extends Toke
 
 final case class SemicolonToken(text: String, line: Int, column: Int) extends Token
 final case class ColonToken(text: String, line: Int, column: Int) extends Token
+final case class CommaToken(text: String, line: Int, column: Int) extends Token
 
 final case class AssignToken(text: String, line: Int, column: Int) extends Token
 final case class PlusToken(text: String, line: Int, column: Int) extends Token

@@ -28,8 +28,8 @@ public static Block extendBlock(List<Ast> list, Ast value) {
 :}
 
 // terminals
-terminal VAR, VAL;
-terminal SEMICOLON, COLON, ASSIGN, PLUS, MINUS, TIMES, DIVIDE;
+terminal VAR, VAL, DEF, CLASS, INTERFACE, PUBLIC, PRIVATE, FINAL, EXTENDS, IMPLEMENTS, OVERRIDE, AS, IS, THIS, SUPER;
+terminal SEMICOLON, COLON, COMMA, ASSIGN, PLUS, MINUS, TIMES, DIVIDE;
 terminal UNARY_MINUS, OPEN_PAREN, CLOSE_PAREN, OPEN_CURLY_BRACE, CLOSE_CURLY_BRACE;
 terminal IdToken        ID;
 terminal StringToken    STRING;
@@ -39,6 +39,12 @@ terminal DecNumberToken DEC_NUMBER;
 non terminal Block ast;
 non terminal Ast expr_part, expr;
 non terminal Ast val_definition, var_definition;
+non terminal AccessModifier access_modifier;
+non terminal ClassModifiers class_modifiers;
+non terminal String base_class;
+non terminal List<String> base_interfaces;
+non terminal ClassDeclaration class_declaration;
+non terminal InterfaceDeclaration interface_declaration;
 non terminal IdToken type_specification;
 
 // precedences
@@ -120,3 +126,50 @@ var_definition ::= VAR ID:id type_specification:type ASSIGN expr:e
                    VAR ID:id ASSIGN expr:e
                    {: RESULT = new VariableDefinition(id, e); :}
                    ;
+
+access_modifier ::= PUBLIC
+                     {: RESULT = new Public(); :}
+                     |
+                     PRIVATE
+                     {: RESULT = new Private(); :}
+                     ;
+
+class_modifiers ::= access_modifier:access FINAL
+                    {: RESULT = new ClassModifiers(access, true); :}
+                    |
+                    access_modifier:access
+                    {: RESULT = new ClassModifiers(access, false); :}
+                    |
+                    FINAL
+                    {: RESULT = new ClassModifiers(new Private(), true); :} // default access modifier is 'private'
+                    ;
+
+base_class ::= EXTENDS ID:baseClassName
+               {: RESULT = baseClassName.name; :}
+               ;
+
+base_interfaces ::= IMPLEMENTS ID:baseInterfaceName
+                    {: List<String> list = List$.MODULE$.empty();
+                       RESULT = new colon$colon$(baseInterfaceName, list); :}
+                    |
+                    base_interfaces:list COMMA ID:baseInterfaceName
+                    {: RESULT = new colon$colon$(baseInterfaceName, list); :}
+                    ;
+
+class_declaration ::= class_modifiers:modifiers ID:className
+                      {: RESULT = new ClassDeclaration(className, modifiers, scala.Option.<String>apply(null),
+                                                       List$.MODULE$.empty()); :}
+                      |
+                      ID:className
+                      {: RESULT = new ClassDeclaration(className, new ClassModifiers(new Private(), false),
+                                                       scala.Option.<String>apply(null), List$.MODULE$.empty()); :}
+                      |
+                      class_modifiers:modifiers ID:className base_class:baseClassName
+                      {: RESULT = new ClassDeclaration(className, modifiers, scala.Option.<String>apply(baseClassName),
+                                                       List$.MODULE$.empty()); :}
+                      |
+                      ID:className base_class
+                      {: RESULT =  :}
+                      ;
+
+interface_declaration ::=

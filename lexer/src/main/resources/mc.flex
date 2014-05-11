@@ -122,6 +122,7 @@ Identifier = [a-zA-Z_$][a-zA-Z_$0-9]*
 <YYINITIAL, AFTER> {
     ";" { resetAfterState(); return makeToken(SemicolonToken.class); }
     ":" { resetAfterState(); return makeToken(ColonToken.class); }
+    "," { resetAfterState(); return makeToken(CommaToken.class); }
 
     // operators
     "=" { resetAfterState(); return makeToken(AssignToken.class); }

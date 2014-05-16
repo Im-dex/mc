@@ -9,6 +9,5 @@ lexer/build/*
 mclex/build/*
 lexer/src/main/java/*
 parser/build/*
-parser/src/main/java/*
 mcc\build\*
 mcrepl\build\*

@@ -1,0 +1,13 @@
+syntax: glob
+.gradle/*
+.idea/*
+gradle/*
+*.iml
+gradlew*
+classes/*
+lexer/build/*
+mclex/build/*
+lexer/src/main/java/*
+parser/build/*
+mcc\build\*
+mcrepl\build\*

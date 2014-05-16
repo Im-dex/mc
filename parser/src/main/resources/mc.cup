@@ -1,0 +1,228 @@
+package org.mc.parser;
+
+import org.mc.lexer.*;
+import org.mc.parser.parser_internals.*;
+import scala.collection.immutable.List;
+import scala.collection.immutable.List$;
+import scala.collection.immutable.$colon$colon;
+
+parser code {:
+
+public static <T> scala.Option<T> makeSome(T value) {
+    return scala.Option.<T>apply(value);
+}
+
+public static <T> scala.Option<T> makeNone() {
+    return scala.Option.<T>apply(null);
+}
+
+public static <T> List<T> makeList() {
+    return List$.MODULE$.empty();
+}
+
+public static <T> List<T> makeList(T value) {
+    final List<T> list = makeList();
+    return extendList(list, value);
+}
+
+public static <T> List<T> extendList(List<T> list, T value) {
+    return new $colon$colon(value, list);
+}
+
+public static AccessModifier DEFAULT_ACCESS_MODIFIER = new Public();
+
+:}
+
+// terminals
+terminal VAR, VAL, DEF, CLASS, INTERFACE, PUBLIC, PRIVATE, FINAL, EXTENDS, IMPLEMENTS, OVERRIDE, AS, IS, THIS, SUPER;
+terminal SEMICOLON, COLON, COMMA, ASSIGN, PLUS, MINUS, TIMES, DIVIDE;
+terminal UNARY_MINUS, OPEN_PAREN, CLOSE_PAREN, OPEN_CURLY_BRACE, CLOSE_CURLY_BRACE;
+terminal IdToken        ID;
+terminal StringToken    STRING;
+terminal DecNumberToken DEC_NUMBER;
+
+//
+// non-terminals
+//
+
+// base
+non terminal Block ast;
+non terminal Ast expr_part, expr;
+non terminal Ast val_definition, var_definition;
+non terminal IdToken type_specification;
+
+// class declaration
+non terminal AccessModifier access_modifier;
+non terminal ClassModifiers class_modifiers;
+non terminal List<String> class_list;
+non terminal String base_class;
+non terminal List<String> base_interfaces;
+non terminal ClassInheritanceInfo class_inheritance_info;
+non terminal ClassDeclaration class_declaration;
+
+// interface declaration
+non terminal InterfaceDeclaration interface_declaration;
+
+// class body
+
+// precedences
+precedence right ASSIGN;
+precedence left  PLUS, MINUS;
+precedence left  TIMES, DIVIDE;
+precedence left  UNARY_MINUS;
+
+// grammar
+ast ::= ast:self expr_part:exprPart
+        {: RESULT = Parser.extendList(self.expressions(), exprPart); :}
+        |
+        expr_part:exprPart
+        {: RESULT = Parser.makeList(exprPart); :}
+        ;
+
+expr_part ::= expr:e SEMICOLON
+              {: RESULT = e; :}
+              |
+              OPEN_CURLY_BRACE expr_part:exprPart CLOSE_CURLY_BRACE
+              {: RESULT = Parser.makeList(exprPart); :}
+              |
+              val_definition:val SEMICOLON
+              {: RESULT = val; :}
+              |
+              var_definition:var SEMICOLON
+              {: RESULT = var; :}
+              |
+              error SEMICOLON
+              {: RESULT = new ErrorExpression(); :}
+              ;
+
+expr ::= expr:e1 PLUS expr:e2
+         {: RESULT = new BinaryExpression(e1, e2, new AddOperator()); :}
+         |
+         expr:e1 MINUS expr:e2
+         {: RESULT = new BinaryExpression(e1, e2, new SubOperator()); :}
+         |
+         expr:e1 TIMES expr:e2
+         {: RESULT = new BinaryExpression(e1, e2, new MulOperator()); :}
+         |
+         expr:e1 DIVIDE expr:e2
+         {: RESULT = new BinaryExpression(e1, e2, new DivOperator()); :}
+         |
+         expr:e1 ASSIGN expr:e2
+         {: RESULT = new BinaryExpression(e1, e2, new AssignOperator()); :}
+         |
+         ID:id
+         {: RESULT = new IdConstant(id); :}
+         |
+         STRING:str
+         {: RESULT = new StringConstant(str); :}
+         |
+         DEC_NUMBER:num
+         {: RESULT = new DecConstant(num); :}
+         |
+         MINUS expr:e
+         {: RESULT = new UnaryExpression(e, Parser.makeSome(new UnarySubOperator())); :}
+         %prec UNARY_MINUS
+         |
+         OPEN_PAREN expr:e CLOSE_PAREN
+         {: RESULT = e; :}
+         ;
+
+type_specification ::= COLON ID:id
+         {: RESULT = id; :}
+         ;
+
+val_definition ::= VAL ID:id type_specification:type ASSIGN expr:e
+                   {: RESULT = new ValueDefinition(id, e); :}
+                   |
+                   VAL ID:id ASSIGN expr:e
+                   {: RESULT = new ValueDefinition(id, e); :}
+                   ;
+
+var_definition ::= VAR ID:id type_specification:type ASSIGN expr:e
+                   {: RESULT = new VariableDefinition(id, e); :}
+                   |
+                   VAR ID:id ASSIGN expr:e
+                   {: RESULT = new VariableDefinition(id, e); :}
+                   ;
+
+access_modifier ::= PUBLIC
+                     {: RESULT = new Public(); :}
+                     |
+                     PRIVATE
+                     {: RESULT = new Private(); :}
+                     |
+                     access_modifier access_modifier
+                     {: /*TODO: report error*/ :}
+                     ;
+
+class_modifiers ::= access_modifier:access FINAL
+                    {: RESULT = new ClassModifiers(access, true); :}
+                    |
+                    access_modifier:access
+                    {: RESULT = new ClassModifiers(access, false); :}
+                    |
+                    FINAL
+                    {: RESULT = new ClassModifiers(DEFAULT_ACCESS_MODIFIER, true); :}
+                    ;
+
+class_list ::= class_list:list COMMA ID:className
+               {: RESULT = Parser.extendList(list, className); :}
+               |
+               ID:className
+               {: RESULT = Parser.makeList(className); :}
+               ;
+
+base_class ::= EXTENDS ID:className
+               {: RESULT = className; :}
+               |
+               EXTENDS class_list
+               {: /*TODO: report error*/ :}
+               ;
+
+base_interfaces ::= IMPLEMENTS class_list:list
+                    {: RESULT = list; :}
+                    ;
+
+class_inheritance_info ::= base_class:className base_interfaces:interfaces
+                           {: RESULT = new ClassInheritanceInfo(className, interfaces); :}
+                           |
+                           base_interfaces:interfaces base_class:className
+                           {: RESULT = new ClassInheritanceInfo(className, interfaces); :}
+                           |
+                           base_class:className
+                           {: RESULT = new ClassInheritanceInfo(className, Parser.<String>makeList()); :}
+                           |
+                           base_interfaces:interfaces
+                           {: RESULT = new ClassInheritanceInfo(Parser.<String>makeList(), interfaces); :}
+                           ;
+
+class_declaration ::= class_modifiers:modifiers CLASS ID:className
+                      {: RESULT = new ClassDeclaration(className, modifiers, Parser.<ClassInheritanceInfo>makeNone()); :}
+                      |
+                      CLASS ID:className
+                      {: RESULT = new ClassDeclaration(className, ClassModifiers$.MODULE$.default(),
+                                                       Parser.<ClassInheritanceInfo>makeNone()); :}
+                      |
+                      class_modifiers:modifiers CLASS ID:className class_inheritance_info:inheritanceInfo
+                      {: RESULT = new ClassDeclaration(className, modifiers, inheritanceInfo); :}
+                      |
+                      CLASS ID:className class_inheritance_info:inheritanceInfo
+                      {: RESULT = new ClassDeclaration(className, ClassModifiers$.MODULE$.default(), inheritanceInfo); :}
+                      ;
+
+interface_declaration ::= class_modifiers:modifiers INTERFACE ID:interfaceName
+                          {:  if (modifiers.finalFlag) {/*TODO:error*/}
+                              RESULT = new InterfaceDeclaration(interfaceName, modifiers.accessModifier, Parser.<String>makeList()); :}
+                          |
+                          INTERFACE ID:interfaceName
+                          {: RESULT = new InterfaceDeclaration(interfaceName, DEFAULT_ACCESS_MODIFIER, Parser.<String>makeList()); :}
+                          |
+                          class_modifiers:modifiers INTERFACE ID:interfaceName class_inheritance_info:inheritanceInfo
+                          {:  if (modifiers.finalFlag) {/*TODO:error*/}
+                              if (!inheritanceInfo.baseClass instanceof scala.None$) { /*TODO:error*/ }
+                              RESULT = new InterfaceDeclaration(interfaceName, modifiers.accessModifier, inheritanceInfo.interfaces); :}
+                          |
+                          INTERFACE ID:interfaceName class_inheritance_info:inheritanceInfo
+                          {:  if (!inheritanceInfo.baseClass instanceof scala.None$) { /*TODO:error*/ }
+                              RESULT = new InterfaceDeclaration(interfaceName, DEFAULT_ACCESS_MODIFIER, inheritanceInfo.interfaces); :}
+                          ;

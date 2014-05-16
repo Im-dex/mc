@@ -1,0 +1,6 @@
+include "lexer"
+include "parser"
+include "mcrepl"
+include "ir"
+include "semantic_parser"
+

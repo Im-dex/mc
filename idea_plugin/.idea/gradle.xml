@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="GradleSettings">
+    <option name="linkedExternalProjectsSettings">
+      <GradleProjectSettings>
+        <option name="distributionType" value="WRAPPED" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$/.." />
+        <option name="gradleHome" value="C:/gradle-1.12" />
+        <option name="modules">
+          <set>
+            <option value="C:\HG\mc" />
+            <option value="C:\HG\mc\ir" />
+            <option value="C:\HG\mc\lexer" />
+            <option value="C:\HG\mc\parser" />
+            <option value="C:\HG\mc\semantic_parser" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+    </option>
+  </component>
+</project>
+

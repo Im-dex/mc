@@ -1,6 +1,6 @@
 syntax: glob
-.gradle/*
 .idea/*
+.gradle/*
 gradle/*
 *.iml
 gradlew*
@@ -9,6 +9,14 @@ lexer/build/*
 mclex/build/*
 lexer/src/main/java/*
 parser/build/*
-parser/src/main/java/*
 mcc\build\*
 mcrepl\build\*
+parser/src/main/java/org/mc/parser/Parser.java
+parser/src/main/java/org/mc/parser/sym.java
+idea_plugin/trash/*
+ir/ir.iml
+lexer/lexer.iml
+parser/parser.iml
+semantic_parser/semantic_parser.iml
+idea_plugin/.idea/workspace.xml
+idea_plugin/out/*

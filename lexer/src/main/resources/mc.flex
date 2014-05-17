@@ -17,15 +17,24 @@ import java.lang.reflect.InvocationTargetException;
 %function nextToken
 
 %eofval{
-    return new EofToken("", -1, -1);
+    return new EofToken("", new TokenPosition(-1, -1, -1, -1));
 %eofval}
 
 %{
 
+private int getTokenBeginOffset() {
+    return yytext().length() - yychar;
+}
+
+private TokenPosition getTokenPosition() {
+    return new TokenPosition(yyline, yycolumn, getTokenBeginOffset(), yychar);
+}
+
+
 private <T extends Token> T makeToken(Class<T> type) {
     try {
-        Constructor<T> constructor = type.getDeclaredConstructor(String.class, int.class, int.class);
-        return constructor.newInstance(yytext(), yyline, yycolumn);
+        Constructor<T> constructor = type.getDeclaredConstructor(String.class, TokenPosition.class);
+        return constructor.newInstance(yytext(), getTokenPosition());
     } catch (NoSuchMethodException e) {
         throw new IllegalStateException(e);
     }
@@ -42,16 +51,16 @@ private <T extends Token> T makeToken(Class<T> type) {
 
 private Token makeNumberToken(String value) {
     BigInteger intValue = new BigInteger(value);
-    return new DecNumberToken(yytext(), yyline, yycolumn, new BigInt(intValue));
+    return new DecNumberToken(yytext(), getTokenPosition(), new BigInt(intValue));
 }
 
 private Token makeHexNumberToken(String value) {
     BigInteger intValue = new BigInteger(value.substring(2), 16);
-    return new DecNumberToken(yytext(), yyline, yycolumn, new BigInt(intValue));
+    return new DecNumberToken(yytext(), getTokenPosition(), new BigInt(intValue));
 }
 
 private IdToken makeIdToken() {
-    return new IdToken(yytext(), yyline, yycolumn, yytext());
+    return new IdToken(yytext(), getTokenPosition(), yytext());
 }
 
 private void resetAfterState() {
@@ -153,7 +162,7 @@ Identifier = [a-zA-Z_$][a-zA-Z_$0-9]*
 
 <STRING> {
     \" { yybegin(YYINITIAL);
-         return new StringToken("\"" + string.toString() + "\"", line, column, string.toString()); }
+         return new StringToken("\"" + string.toString() + "\"", getTokenPosition(), string.toString()); }
 
     [^\n\r\"\\]+    { string.append(yytext()); }
     \\t             { string.append('\t'); }

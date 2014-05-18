@@ -13,6 +13,7 @@ mcc\build\*
 mcrepl\build\*
 parser/src/main/java/org/mc/parser/Parser.java
 parser/src/main/java/org/mc/parser/sym.java
+idea_plugin/.idea/*
 idea_plugin/trash/*
 ir/ir.iml
 lexer/lexer.iml

@@ -6,6 +6,6 @@ public class McLanguage extends Language {
     public static final McLanguage INSTANCE = new McLanguage();
 
     protected McLanguage() {
-        super("Mc");
+        super("mc");
     }
 }

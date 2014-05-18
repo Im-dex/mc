@@ -14,44 +14,44 @@ object McLexer {
         new McLexer(lexer)
     }
 
-    private val ID: IElementType = new McTokenType("ID")
-    private val STRING: IElementType = new McTokenType("STRING")
-    private val DEC_NUMBER: IElementType = new McTokenType("DEC_NUMBER")
+    val ID: IElementType = new McTokenType("ID")
+    val STRING: IElementType = new McTokenType("STRING")
+    val DEC_NUMBER: IElementType = new McTokenType("DEC_NUMBER")
 
-    private val EOF: IElementType = new McTokenType("EOF")
-    private val COMMENT: IElementType = new McTokenType("COMMENT")
-    private val ERROR: IElementType = new McTokenType("ERROR")
+    //val EOF: IElementType = new McTokenType("EOF")
+    val COMMENT: IElementType = new McTokenType("COMMENT")
+    val ERROR: IElementType = new McTokenType("ERROR")
 
-    private val KW_VAL: IElementType = new McTokenType("KW_VAL")
-    private val KW_VAR: IElementType = new McTokenType("KW_VAR")
-    private val KW_DEF: IElementType = new McTokenType("KW_DEF")
-    private val KW_CLASS: IElementType = new McTokenType("KW_CLASS")
-    private val KW_INTERFACE: IElementType = new McTokenType("KW_INTERFACE")
-    private val KW_PUBLIC: IElementType = new McTokenType("KW_PUBLIC")
-    private val KW_PRIVATE: IElementType = new McTokenType("KW_PRIVATE")
-    private val KW_FINAL: IElementType = new McTokenType("KW_FINAL")
-    private val KW_EXTENDS: IElementType = new McTokenType("KW_EXTENDS")
-    private val KW_IMPLEMENTS: IElementType = new McTokenType("KW_IMPLEMENTS")
-    private val KW_OVERRIDE: IElementType = new McTokenType("KW_OVERRIDE")
-    private val KW_AS: IElementType = new McTokenType("KW_AS")
-    private val KW_IS: IElementType = new McTokenType("KW_IS")
-    private val KW_THIS: IElementType = new McTokenType("KW_THIS")
-    private val KW_SUPER: IElementType = new McTokenType("KW_SUPER")
+    val KW_VAL: IElementType = new McTokenType("KW_VAL")
+    val KW_VAR: IElementType = new McTokenType("KW_VAR")
+    val KW_DEF: IElementType = new McTokenType("KW_DEF")
+    val KW_CLASS: IElementType = new McTokenType("KW_CLASS")
+    val KW_INTERFACE: IElementType = new McTokenType("KW_INTERFACE")
+    val KW_PUBLIC: IElementType = new McTokenType("KW_PUBLIC")
+    val KW_PRIVATE: IElementType = new McTokenType("KW_PRIVATE")
+    val KW_FINAL: IElementType = new McTokenType("KW_FINAL")
+    val KW_EXTENDS: IElementType = new McTokenType("KW_EXTENDS")
+    val KW_IMPLEMENTS: IElementType = new McTokenType("KW_IMPLEMENTS")
+    val KW_OVERRIDE: IElementType = new McTokenType("KW_OVERRIDE")
+    val KW_AS: IElementType = new McTokenType("KW_AS")
+    val KW_IS: IElementType = new McTokenType("KW_IS")
+    val KW_THIS: IElementType = new McTokenType("KW_THIS")
+    val KW_SUPER: IElementType = new McTokenType("KW_SUPER")
 
-    private val SEMICOLON: IElementType = new McTokenType("SEMICOLON")
-    private val COLON: IElementType = new McTokenType("COLON")
-    private val COMMA: IElementType = new McTokenType("COMMA")
+    val SEMICOLON: IElementType = new McTokenType("SEMICOLON")
+    val COLON: IElementType = new McTokenType("COLON")
+    val COMMA: IElementType = new McTokenType("COMMA")
 
-    private val ASSIGN: IElementType = new McTokenType("ASSIGN")
-    private val PLUS: IElementType = new McTokenType("PLUS")
-    private val MINUS: IElementType = new McTokenType("MINUS")
-    private val TIMES: IElementType = new McTokenType("TIMES")
-    private val DIVIDE: IElementType = new McTokenType("DIVIDE")
+    val ASSIGN: IElementType = new McTokenType("ASSIGN")
+    val PLUS: IElementType = new McTokenType("PLUS")
+    val MINUS: IElementType = new McTokenType("MINUS")
+    val TIMES: IElementType = new McTokenType("TIMES")
+    val DIVIDE: IElementType = new McTokenType("DIVIDE")
 
-    private val OPEN_PAREN: IElementType = new McTokenType("OPEN_PAREN")
-    private val CLOSE_PAREN: IElementType = new McTokenType("CLOSE_PAREN")
-    private val OPEN_CURLY_BRACE: IElementType = new McTokenType("OPEN_CURLY_BRACE")
-    private val CLOSE_CURLY_BRACE: IElementType = new McTokenType("CLOSE_CURLY_BRACE")
+    val OPEN_PAREN: IElementType = new McTokenType("OPEN_PAREN")
+    val CLOSE_PAREN: IElementType = new McTokenType("CLOSE_PAREN")
+    val OPEN_CURLY_BRACE: IElementType = new McTokenType("OPEN_CURLY_BRACE")
+    val CLOSE_CURLY_BRACE: IElementType = new McTokenType("CLOSE_CURLY_BRACE")
 }
 
 class McLexer(val lexer: JFlexLexer) extends LexerBase {
@@ -116,7 +116,7 @@ class McLexer(val lexer: JFlexLexer) extends LexerBase {
         case _: StringToken => McLexer.STRING
         case _: DecNumberToken => McLexer.DEC_NUMBER
 
-        case _: EofToken => McLexer.EOF
+        case _: EofToken => null
         case _: CommentToken => McLexer.COMMENT
         case _: ErrorToken => McLexer.ERROR
 

@@ -1,12 +1,10 @@
 package org.mc.parser;
 
 import org.mc.lexer.*;
-import org.mc.parser.parser_internals.*;
+import org.mc.parser.*;
 import scala.collection.immutable.List;
 
 parser code {:
-
-public static AccessModifier DEFAULT_ACCESS_MODIFIER = new Public();
 
 :}
 
@@ -29,7 +27,7 @@ non terminal Ast val_definition, var_definition;
 non terminal IdToken type_specification;
 
 // class declaration
-non terminal AccessModifier access_modifier;
+/*non terminal AccessModifier access_modifier;
 non terminal ClassModifiers class_modifiers;
 non terminal List<String> class_list;
 non terminal String base_class;
@@ -38,9 +36,7 @@ non terminal ClassInheritanceInfo class_inheritance_info;
 non terminal ClassDeclaration class_declaration;
 
 // interface declaration
-non terminal InterfaceDeclaration interface_declaration;
-
-// class body
+non terminal InterfaceDeclaration interface_declaration;*/
 
 // precedences
 precedence right ASSIGN;
@@ -50,17 +46,17 @@ precedence left  UNARY_MINUS;
 
 // grammar
 ast ::= ast:self expr_part:exprPart
-        {: RESULT = ScalaUtils.put(self.expressions(), exprPart); :}
+        {: RESULT = new Block(ScalaUtils.put(self.expressions(), exprPart)); :}
         |
         expr_part:exprPart
-        {: RESULT = ScalaUtils.makeList(exprPart); :}
+        {: RESULT = new Block(ScalaUtils.makeList(exprPart)); :}
         ;
 
 expr_part ::= expr:e SEMICOLON
               {: RESULT = e; :}
               |
               OPEN_CURLY_BRACE expr_part:exprPart CLOSE_CURLY_BRACE
-              {: RESULT = ScalaUtils.makeList(exprPart); :}
+              {: RESULT = new Block(ScalaUtils.makeList(exprPart)); :}
               |
               val_definition:val SEMICOLON
               {: RESULT = val; :}
@@ -97,7 +93,8 @@ expr ::= expr:e1 PLUS expr:e2
          {: RESULT = new DecConstant(num); :}
          |
          MINUS expr:e
-         {: RESULT = new UnaryExpression(e, ScalaUtils.makeSome(new UnarySubOperator())); :}
+         {:  UnaryOperator operator = new UnarySubOperator();
+             RESULT = new UnaryExpression(e, ScalaUtils.makeSome(operator)); :}
          %prec UNARY_MINUS
          |
          OPEN_PAREN expr:e CLOSE_PAREN
@@ -122,14 +119,16 @@ var_definition ::= VAR ID:id type_specification:type ASSIGN expr:e
                    {: RESULT = new VariableDefinition(id, e); :}
                    ;
 
-access_modifier ::= PUBLIC
+/*access_modifier ::= PUBLIC
                      {: RESULT = new Public(); :}
                      |
                      PRIVATE
                      {: RESULT = new Private(); :}
                      |
                      access_modifier access_modifier
-                     {: /*TODO: report error*/ :}
+                     {:
+                        //TODO: report error
+                     :}
                      ;
 
 class_modifiers ::= access_modifier:access FINAL
@@ -139,7 +138,7 @@ class_modifiers ::= access_modifier:access FINAL
                     {: RESULT = new ClassModifiers(access, false); :}
                     |
                     FINAL
-                    {: RESULT = new ClassModifiers(DEFAULT_ACCESS_MODIFIER, true); :}
+                    {: RESULT = new ClassModifiers(AccessModifier._mthdefault(), true); :}
                     ;
 
 class_list ::= class_list:list COMMA ID:className
@@ -153,7 +152,9 @@ base_class ::= EXTENDS ID:className
                {: RESULT = className; :}
                |
                EXTENDS class_list
-               {: /*TODO: report error*/ :}
+               {:
+                    //TODO: report error
+               :}
                ;
 
 base_interfaces ::= IMPLEMENTS class_list:list
@@ -170,36 +171,44 @@ class_inheritance_info ::= base_class:className base_interfaces:interfaces
                            {: RESULT = new ClassInheritanceInfo(className, ScalaUtils.<String>makeList()); :}
                            |
                            base_interfaces:interfaces
-                           {: RESULT = new ClassInheritanceInfo(ScalaUtils.<String>makeList(), interfaces); :}
+                           {: RESULT = new ClassInheritanceInfo(ScalaUtils.<String>makeNone(), interfaces); :}
                            ;
 
 class_declaration ::= class_modifiers:modifiers CLASS ID:className
-                      {: RESULT = new ClassDeclaration(className, modifiers, ScalaUtils.<ClassInheritanceInfo>makeNone()); :}
+                      {: RESULT = new ClassDeclaration(className.name(), modifiers, ScalaUtils.<ClassInheritanceInfo>makeNone()); :}
                       |
                       CLASS ID:className
-                      {: RESULT = new ClassDeclaration(className, ClassModifiers$.MODULE$.default(),
+                      {: RESULT = new ClassDeclaration(className.name(), ClassModifiers._mthdefault(),
                                                        ScalaUtils.<ClassInheritanceInfo>makeNone()); :}
                       |
                       class_modifiers:modifiers CLASS ID:className class_inheritance_info:inheritanceInfo
-                      {: RESULT = new ClassDeclaration(className, modifiers, inheritanceInfo); :}
+                      {: RESULT = new ClassDeclaration(className.name(), modifiers, inheritanceInfo); :}
                       |
                       CLASS ID:className class_inheritance_info:inheritanceInfo
-                      {: RESULT = new ClassDeclaration(className, ClassModifiers$.MODULE$.default(), inheritanceInfo); :}
+                      {: RESULT = new ClassDeclaration(className.name(), ClassModifiers._mthdefault(), inheritanceInfo); :}
                       ;
 
 interface_declaration ::= class_modifiers:modifiers INTERFACE ID:interfaceName
-                          {:  if (modifiers.finalFlag) {/*TODO:error*/}
-                              RESULT = new InterfaceDeclaration(interfaceName, modifiers.accessModifier, ScalaUtils.<String>makeList()); :}
+                          {:  if (modifiers.finalFlag()) {
+                                    //TODO:error
+                              }
+                              RESULT = new InterfaceDeclaration(interfaceName.name(), modifiers.accessModifier(), ScalaUtils.<String>makeList()); :}
                           |
                           INTERFACE ID:interfaceName
-                          {: RESULT = new InterfaceDeclaration(interfaceName, DEFAULT_ACCESS_MODIFIER, ScalaUtils.<String>makeList()); :}
+                          {: RESULT = new InterfaceDeclaration(interfaceName.name(), ClassModifiers._mthdefault(), ScalaUtils.<String>makeList()); :}
                           |
                           class_modifiers:modifiers INTERFACE ID:interfaceName class_inheritance_info:inheritanceInfo
-                          {:  if (modifiers.finalFlag) {/*TODO:error*/}
-                              if (!inheritanceInfo.baseClass instanceof scala.None$) { /*TODO:error*/ }
-                              RESULT = new InterfaceDeclaration(interfaceName, modifiers.accessModifier, inheritanceInfo.interfaces); :}
+                          {:  if (modifiers.finalFlag()) {
+                                    //TODO:error
+                              }
+                              if (!inheritanceInfo.baseClass().isEmpty()) {
+                                    //TODO:error
+                              }
+                              RESULT = new InterfaceDeclaration(interfaceName.name(), modifiers.accessModifier(), inheritanceInfo.interfaces()); :}
                           |
                           INTERFACE ID:interfaceName class_inheritance_info:inheritanceInfo
-                          {:  if (!inheritanceInfo.baseClass instanceof scala.None$) { /*TODO:error*/ }
-                              RESULT = new InterfaceDeclaration(interfaceName, DEFAULT_ACCESS_MODIFIER, inheritanceInfo.interfaces); :}
-                          ;
+                          {:  if (!inheritanceInfo.baseClass().isEmpty()) {
+                                    //TODO:error
+                              }
+                              RESULT = new InterfaceDeclaration(interfaceName.name(), ClassModifiers._mthdefault(), inheritanceInfo.interfaces()); :}
+                          ;*/

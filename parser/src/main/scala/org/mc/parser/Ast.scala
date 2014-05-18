@@ -16,8 +16,5 @@ final case class StringConstant(token: StringToken) extends Ast
 final case class ValueDefinition(token: IdToken, init: Ast) extends Ast
 final case class VariableDefinition(token: IdToken, init: Ast) extends Ast
 
-final case class ClassDeclaration(name: String, modifiers: ClassModifiers, baseClass: Option[String],
-                                  baseInterfaces: List[String]) extends Ast
-
-final case class InterfaceDeclaration(name: String, accessModifier: AccessModifier,
-                                      baseInterfaces: List[String]) extends Ast
+final case class ClassDeclaration(name: String, modifiers: ClassModifiers, inheritanceInfo: ClassInheritanceInfo) extends Ast
+final case class InterfaceDeclaration(name: String, accessModifier: AccessModifier, baseInterfaces: List[String]) extends Ast

@@ -2,7 +2,6 @@ syntax: glob
 .idea/*
 .gradle/*
 gradle/*
-*.iml
 gradlew*
 classes/*
 lexer/build/*
@@ -21,3 +20,4 @@ parser/parser.iml
 semantic_parser/semantic_parser.iml
 idea_plugin/.idea/workspace.xml
 idea_plugin/out/*
+mc.iml

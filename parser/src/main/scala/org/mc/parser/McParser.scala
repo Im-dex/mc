@@ -14,12 +14,12 @@ class McParser(private val listener: McParserListener) extends Parser {
 
     override def unrecovered_syntax_error (cur_token: Symbol): Unit = {
         val token = cur_token.value.asInstanceOf[Token]
-        listener.onFatalSyntaxError(token.line, token.column, token.text)
+        listener.onFatalSyntaxError(token.position.line, token.position.column, token.text)
     }
 
     override def syntax_error (cur_token: Symbol): Unit = {
         val token = cur_token.value.asInstanceOf[Token]
-        listener.onSyntaxError(token.line, token.column, token.text)
+        listener.onSyntaxError(token.position.line, token.position.column, token.text)
     }
 
     @throws(classOf[error.ParseException])

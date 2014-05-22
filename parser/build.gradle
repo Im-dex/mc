@@ -1,32 +1,33 @@
 configurations {
-    jcup
+    beaver
 }
 
 ext {
-    parserDescription = file("${projectDir}/src/main/resources/mc.cup")
-    jcupOutput = file("${projectDir}/src/main/java/org/mc/parser")
-    jcupLib = 'net.sf.squirrel-sql.thirdparty.non-maven:java-cup:11a'
+    parserDescription = file("${projectDir}/src/main/resources/mc.grammar")
+    beaverOutput = file("${projectDir}/src/main/java")
+    beaverLibRT = 'net.sf.beaver:beaver-rt:0.9.11'
+    beaverLibCC = 'net.sf.beaver:beaver-cc:0.9.11'
 }
 
 dependencies {
-    jcup ext.jcupLib
-    compile ext.jcupLib
+    beaver ext.beaverLibCC
+    compile ext.beaverLibRT
     compile project(':lexer')
 }
 
 task createSourceDirectories() << {
-    project.jcupOutput.mkdirs()
+    project.beaverOutput.mkdirs()
 }
 
 task(generateParser, type: JavaExec) {
     inputs.file project.parserDescription
-    outputs.file project.jcupOutput
+    outputs.file project.beaverOutput
 
-    classpath = configurations.jcup
-    main = 'java_cup.Main'
+    classpath = configurations.beaver
+    main = 'beaver.comp.run.Make'
     args = [
-            "-destdir", "${project.jcupOutput}",
-            "-parser", "Parser",
+            "-d", "${project.beaverOutput}",
+            "-T",
             "${project.parserDescription}"
     ]
 }

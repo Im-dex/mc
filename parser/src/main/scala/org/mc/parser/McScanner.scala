@@ -1,13 +1,13 @@
 package org.mc.parser
 
-import java_cup.runtime.Scanner
-import java_cup.runtime.Symbol
 import org.mc.lexer._
 import org.mc.lexer.DecNumberToken
 import org.mc.lexer.StringToken
 import org.mc.lexer.IdToken
 import java.io.InputStreamReader
 import org.mc.parser.error.SkipTokenException
+import beaver.Scanner
+import beaver.Symbol
 
 object McScanner {
     def apply(reader: InputStreamReader) = {
@@ -17,52 +17,66 @@ object McScanner {
 
 final class McScanner(val reader: InputStreamReader) extends Scanner
                                                      with Immutable {
-    val scanner = new JFlexLexer(reader)
+    private val scanner = new McLexer(reader)
+    private var isEof = false
 
-    @throws(classOf[Exception])
-    override def next_token(): Symbol = {
+    @throws(classOf[Scanner.Exception])
+    override def nextToken(): Symbol = {
+        isEof match {
+            case true  => new Symbol(Terminals.EOF)
+            case false => nextTokenImpl()
+        }
+    }
+
+    private def nextTokenImpl(): Symbol = {
         val token = scanner.nextToken()
 
-        try {
-            convertToken(token)
-        }
-        catch {
-            case _: SkipTokenException => next_token()
+        token match {
+            case _: EofToken =>
+                isEof = true
+                new Symbol(Terminals.MY_EOF, null)
+            case _ =>
+                try {
+                    convertToken(token)
+                }
+                catch {
+                    case _: SkipTokenException => nextTokenImpl()
+                }
         }
     }
 
     @throws(classOf[SkipTokenException])
-    private[this] def convertToken(token: Token): Symbol = {
+    private def convertToken(token: Token): Symbol = {
         new Symbol(extractType(token), token)
     }
 
     @throws(classOf[SkipTokenException])
-    private[this] def extractType(token: Token): Int = token match {
-        case _: IdToken              => sym.ID
-        case _: StringToken          => sym.STRING
-        case _: DecNumberToken       => sym.DEC_NUMBER
+    private def extractType(token: Token): Short = token match {
+        case _: IdToken              => Terminals.ID
+        case _: StringToken          => Terminals.STRING
+        case _: DecNumberToken       => Terminals.DEC_NUMBER
 
-        case _: EofToken             => sym.EOF
+        case _: EofToken             => Terminals.EOF
         case _: CommentToken         => throw SkipTokenException("Comment")
-        case _: ErrorToken           => sym.error
+        case _: ErrorToken           => throw new Scanner.Exception("error token")
 
-        case _: KwValToken           => sym.VAL
-        case _: KwVarToken           => sym.VAR
+        //case _: KwValToken           => Terminals.VAL
+        //case _: KwVarToken           => Terminals.VAR
 
-        case _: SemicolonToken       => sym.SEMICOLON
-        case _: ColonToken           => sym.COLON
+        case _: SemicolonToken       => Terminals.SEMICOLON
+        //case _: ColonToken           => Terminals.COLON
 
-        case _: AssignToken          => sym.ASSIGN
-        case _: PlusToken            => sym.PLUS
-        case _: MinusToken           => sym.MINUS
-        case _: TimesToken           => sym.TIMES
-        case _: DivideToken          => sym.DIVIDE
+        //case _: AssignToken          => Terminals.ASSIGN
+        case _: PlusToken            => Terminals.PLUS
+        case _: MinusToken           => Terminals.MINUS
+        case _: TimesToken           => Terminals.TIMES
+        case _: DivideToken          => Terminals.DIVIDE
 
-        case _: OpenParenToken       => sym.OPEN_PAREN
-        case _: CloseParenToken      => sym.CLOSE_PAREN
-        case _: OpenCurlyBraceToken  => sym.OPEN_CURLY_BRACE
-        case _: CloseCurlyBraceToken => sym.CLOSE_CURLY_BRACE
+        case _: OpenParenToken       => Terminals.OPEN_PAREN
+        case _: CloseParenToken      => Terminals.CLOSE_PAREN
+        //case _: OpenCurlyBraceToken  => Terminals.OPEN_CURLY_BRACE
+        //case _: CloseCurlyBraceToken => Terminals.CLOSE_CURLY_BRACE
 
-        case _                       => sym.error
+        case _                    => throw new IllegalArgumentException("Unknown token")
     }
 }

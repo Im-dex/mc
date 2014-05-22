@@ -1,0 +1,48 @@
+%package "org.mc.parser";
+%import "org.mc.lexer.*";
+%import "org.mc.parser.*";
+%class "McParser";
+
+%terminals ID, STRING, DEC_NUMBER, MY_EOF;
+%terminals OPEN_PAREN, CLOSE_PAREN;
+%terminals SEMICOLON, COLON, COMMA, ASSIGN, PLUS, MINUS, TIMES, DIVIDE;
+%terminals VAR, VAL, DEF, CLASS, INTERFACE, PUBLIC, PRIVATE, FINAL, EXTENDS, IMPLEMENTS, OVERRIDE, AS, IS, THIS, SUPER;
+
+%left OPEN_PAREN, CLOSE_PAREN;
+%right UNARY_MINUS;
+%left TIMES, DIVIDE;
+%left PLUS, MINUS, TIMES, DIVIDE;
+%right ASSIGN;
+
+%typeof ID = "IdToken";
+%typeof STRING = "StringToken";
+%typeof DEC_NUMBER = "DecNumberToken";
+
+%typeof ast = "Ast";
+%typeof expr = "Expression";
+%typeof sub_expr = "Expression";
+
+%goal ast;
+
+ast
+    = expr.e+ {: return new ExpressionList(ScalaUtils.makeList(e)); :}
+    ;
+
+expr
+    = sub_expr.e SEMICOLON {: return e; :}
+    | error SEMICOLON      {: return new ErrorExpression(); :}
+    | error MY_EOF         {: return new ErrorExpression(); :}
+    ;
+
+sub_expr
+    = sub_expr.left PLUS sub_expr.right   {: return new AddExpression(left, right); :}
+    | sub_expr.left MINUS sub_expr.right  {: return new SubExpression(left, right); :}
+    | sub_expr.left TIMES sub_expr.right  {: return new MulExpression(left, right); :}
+    | sub_expr.left DIVIDE sub_expr.right {: return new DivExpression(left, right); :}
+    | MINUS sub_expr.e @ UNARY_MINUS      {: return new MinusExpression(e); :}
+    | ID.literal                          {: return new IdLiteral(literal); :}
+    | STRING.literal                      {: return new StringLiteral(literal); :}
+    | DEC_NUMBER.literal                  {: return new DecNumberLiteral(literal); :}
+    | OPEN_PAREN sub_expr.e CLOSE_PAREN   {: return e; :}
+    ;
+

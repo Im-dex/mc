@@ -23,6 +23,10 @@ class ScalaUtils {
         return put(list, value);
     }
 
+    public static <T> List<T> makeList(T[] array) {
+        return JavaUtils$.MODULE$.asList(array);
+    }
+
     public static <T> List<T> put(List<T> list, T value) {
         //noinspection unchecked
         return new $colon$colon(value, list);

@@ -7,7 +7,7 @@ import java.lang.reflect.InvocationTargetException;
 
 %%
 
-%class JFlexLexer
+%class McLexer
 %unicode
 %line
 %column

@@ -26,6 +26,7 @@
 
 ast
     = expr.e+ {: return new ExpressionList(ScalaUtils.makeList(e)); :}
+    | MY_EOF  {: return new ExpressionList(ScalaUtils.<Expression>makeList()); :}
     ;
 
 expr

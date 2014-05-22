@@ -10,7 +10,7 @@ import scala.reflect.ClassTag
 final class LexerTest extends FlatSpec {
     private val resourceStream = this.getClass.getResourceAsStream("/lex_test.txt")
     private val reader = new InputStreamReader(resourceStream)
-    private val lexer = new JFlexLexer(reader)
+    private val lexer = new McLexer(reader)
 
     "Lexemes" should "be as expected" in {
         expectToken[KwValToken]()

@@ -22,7 +22,7 @@ terminal DecNumberToken DEC_NUMBER;
 
 // base
 non terminal Block ast;
-non terminal Ast expr_part, expr;
+non terminal Ast expr, sub_expr;
 non terminal Ast val_definition, var_definition;
 non terminal IdToken type_specification;
 
@@ -45,43 +45,46 @@ precedence left  TIMES, DIVIDE;
 precedence left  UNARY_MINUS;
 
 // grammar
-ast ::= ast:self expr_part:exprPart
-        {: RESULT = new Block(ScalaUtils.put(self.expressions(), exprPart)); :}
+ast ::= ast:self expr:e
+        {: RESULT = new Block(ScalaUtils.put(self.expressions(), e)); :}
         |
-        expr_part:exprPart
-        {: RESULT = new Block(ScalaUtils.makeList(exprPart)); :}
+        expr:e
+        {: RESULT = new Block(ScalaUtils.makeList(e)); :}
         ;
 
-expr_part ::= expr:e SEMICOLON
-              {: RESULT = e; :}
-              |
-              OPEN_CURLY_BRACE expr_part:exprPart CLOSE_CURLY_BRACE
-              {: RESULT = new Block(ScalaUtils.makeList(exprPart)); :}
-              |
-              val_definition:val SEMICOLON
-              {: RESULT = val; :}
-              |
-              var_definition:var SEMICOLON
-              {: RESULT = var; :}
-              |
-              error SEMICOLON
-              {: RESULT = new ErrorExpression(); :}
-              ;
+expr ::= sub_expr:se SEMICOLON
+         {: RESULT = se; :}
+         |
+         OPEN_CURLY_BRACE expr:e CLOSE_CURLY_BRACE
+         {: RESULT = new Block(ScalaUtils.makeList(e)); :}
+         |
+         val_definition:val SEMICOLON
+         {: RESULT = val; :}
+         |
+         var_definition:var SEMICOLON
+         {: RESULT = var; :}
+         |
+         error SEMICOLON
+         {: RESULT = new ErrorExpression(); :}
+         |
+         error CLOSE_CURLY_BRACE
+         {: RESULT = new ErrorExpression(); :}
+         ;
 
-expr ::= expr:e1 PLUS expr:e2
-         {: RESULT = new BinaryExpression(e1, e2, new AddOperator()); :}
+sub_expr ::= sub_expr:se1 PLUS sub_expr:se2
+         {: RESULT = new BinaryExpression(se1, se2, new AddOperator()); :}
          |
-         expr:e1 MINUS expr:e2
-         {: RESULT = new BinaryExpression(e1, e2, new SubOperator()); :}
+         sub_expr:se1 MINUS sub_expr:se2
+         {: RESULT = new BinaryExpression(se1, se2, new SubOperator()); :}
          |
-         expr:e1 TIMES expr:e2
-         {: RESULT = new BinaryExpression(e1, e2, new MulOperator()); :}
+         sub_expr:e1 TIMES sub_expr:e2
+         {: RESULT = new BinaryExpression(se1, se2, new MulOperator()); :}
          |
-         expr:e1 DIVIDE expr:e2
-         {: RESULT = new BinaryExpression(e1, e2, new DivOperator()); :}
+         sub_expr:se1 DIVIDE sub_expr:se2
+         {: RESULT = new BinaryExpression(se1, se2, new DivOperator()); :}
          |
-         expr:e1 ASSIGN expr:e2
-         {: RESULT = new BinaryExpression(e1, e2, new AssignOperator()); :}
+         sub_expr:se1 ASSIGN sub_expr:se2
+         {: RESULT = new BinaryExpression(se1, se2, new AssignOperator()); :}
          |
          ID:id
          {: RESULT = new IdConstant(id); :}
@@ -92,31 +95,31 @@ expr ::= expr:e1 PLUS expr:e2
          DEC_NUMBER:num
          {: RESULT = new DecConstant(num); :}
          |
-         MINUS expr:e
+         MINUS sub_expr:se
          {:  UnaryOperator operator = new UnarySubOperator();
-             RESULT = new UnaryExpression(e, ScalaUtils.makeSome(operator)); :}
+             RESULT = new UnaryExpression(se, ScalaUtils.makeSome(operator)); :}
          %prec UNARY_MINUS
          |
-         OPEN_PAREN expr:e CLOSE_PAREN
-         {: RESULT = e; :}
+         OPEN_PAREN sub_expr:se CLOSE_PAREN
+         {: RESULT = se; :}
          ;
 
 type_specification ::= COLON ID:id
          {: RESULT = id; :}
          ;
 
-val_definition ::= VAL ID:id type_specification:type ASSIGN expr:e
-                   {: RESULT = new ValueDefinition(id, e); :}
+val_definition ::= VAL ID:id type_specification:type ASSIGN sub_expr:se
+                   {: RESULT = new ValueDefinition(id, se); :}
                    |
-                   VAL ID:id ASSIGN expr:e
-                   {: RESULT = new ValueDefinition(id, e); :}
+                   VAL ID:id ASSIGN sub_expr:se
+                   {: RESULT = new ValueDefinition(id, se); :}
                    ;
 
-var_definition ::= VAR ID:id type_specification:type ASSIGN expr:e
-                   {: RESULT = new VariableDefinition(id, e); :}
+var_definition ::= VAR ID:id type_specification:type ASSIGN sub_expr:se
+                   {: RESULT = new VariableDefinition(id, se); :}
                    |
-                   VAR ID:id ASSIGN expr:e
-                   {: RESULT = new VariableDefinition(id, e); :}
+                   VAR ID:id ASSIGN sub_expr:se
+                   {: RESULT = new VariableDefinition(id, se); :}
                    ;
 
 /*access_modifier ::= PUBLIC

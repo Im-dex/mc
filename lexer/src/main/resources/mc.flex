@@ -7,7 +7,7 @@ import java.lang.reflect.InvocationTargetException;
 
 %%
 
-%class JFlexLexer
+%class McLexer
 %unicode
 %line
 %column
@@ -112,6 +112,8 @@ Identifier = [a-zA-Z_$][a-zA-Z_$0-9]*
     "is"         { yybegin(AFTER); return makeToken(KwIsToken.class); }
     "this"       { yybegin(AFTER); return makeToken(KwThisToken.class); }
     "super"      { yybegin(AFTER); return makeToken(KwSuperToken.class); }
+    "module"     { yybegin(AFTER); return makeToken(KwModuleToken.class); }
+    "import"     { yybegin(AFTER); return makeToken(KwImportToken.class); }
 
     // string
     \" { string.setLength(0);
@@ -132,6 +134,7 @@ Identifier = [a-zA-Z_$][a-zA-Z_$0-9]*
     ";" { resetAfterState(); return makeToken(SemicolonToken.class); }
     ":" { resetAfterState(); return makeToken(ColonToken.class); }
     "," { resetAfterState(); return makeToken(CommaToken.class); }
+    "." { resetAfterState(); return makeToken(DotToken.class); }
 
     // operators
     "=" { resetAfterState(); return makeToken(AssignToken.class); }

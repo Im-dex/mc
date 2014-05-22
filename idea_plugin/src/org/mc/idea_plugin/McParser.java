@@ -10,8 +10,8 @@ public class McParser implements PsiParser {
     @NotNull
     @Override
     public ASTNode parse(IElementType root, PsiBuilder builder) {
-        PsiBuilder.Marker marker = builder.mark();
-        marker.done(root);
+        PsiBuilder.Marker blockMarker = builder.mark();
+        blockMarker.done(root);
         return builder.getTreeBuilt();
     }
 }

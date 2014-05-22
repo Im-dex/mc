@@ -28,10 +28,13 @@ final case class KwAsToken(text: String, position: TokenPosition) extends Token
 final case class KwIsToken(text: String, position: TokenPosition) extends Token
 final case class KwThisToken(text: String, position: TokenPosition) extends Token
 final case class KwSuperToken(text: String, position: TokenPosition) extends Token
+final case class KwModuleToken(text: String, position: TokenPosition) extends Token
+final case class KwImportToken(text: String, position: TokenPosition) extends Token
 
 final case class SemicolonToken(text: String, position: TokenPosition) extends Token
 final case class ColonToken(text: String, position: TokenPosition) extends Token
 final case class CommaToken(text: String, position: TokenPosition) extends Token
+final case class DotToken(text: String, position: TokenPosition) extends Token
 
 final case class AssignToken(text: String, position: TokenPosition) extends Token
 final case class PlusToken(text: String, position: TokenPosition) extends Token

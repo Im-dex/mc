@@ -1,33 +1,7 @@
 package org.mc.parser
 
-import java_cup.runtime.Symbol
-import org.mc.lexer.Token
+class McParser(val scanner: Scanner) {
+    def parse(): Ast = {
 
-object McParser {
-    def apply(listener: McParserListener) = {
-        new McParser(listener)
-    }
-}
-
-class McParser(private val listener: McParserListener) extends Parser {
-
-
-    override def unrecovered_syntax_error (cur_token: Symbol): Unit = {
-        val token = cur_token.value.asInstanceOf[Token]
-        listener.onFatalSyntaxError(token.position.line, token.position.column, token.text)
-    }
-
-    override def syntax_error (cur_token: Symbol): Unit = {
-        val token = cur_token.value.asInstanceOf[Token]
-        listener.onSyntaxError(token.position.line, token.position.column, token.text)
-    }
-
-    @throws(classOf[error.ParseException])
-    override def parse (): Symbol = {
-        try {
-            super.parse()
-        } catch {
-            case exception: Exception => throw error.ParseException(exception)
-        }
     }
 }

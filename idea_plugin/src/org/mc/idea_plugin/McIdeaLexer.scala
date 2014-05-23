@@ -8,6 +8,7 @@ import org.mc.idea_plugin.psi.McTokenType
 import org.mc.lexer.StringToken
 import scala.Some
 import org.mc.lexer.IdToken
+import com.intellij.psi.TokenType
 
 object McIdeaLexer {
     def apply(lexer: McLexer) = {
@@ -18,9 +19,7 @@ object McIdeaLexer {
     val STRING: IElementType = new McTokenType("STRING")
     val DEC_NUMBER: IElementType = new McTokenType("DEC_NUMBER")
 
-    //val EOF: IElementType = new McTokenType("EOF")
     val COMMENT: IElementType = new McTokenType("COMMENT")
-    val ERROR: IElementType = new McTokenType("ERROR")
 
     val KW_VAL: IElementType = new McTokenType("KW_VAL")
     val KW_VAR: IElementType = new McTokenType("KW_VAR")
@@ -112,43 +111,45 @@ class McIdeaLexer(val lexer: McLexer) extends LexerBase {
     }
 
     private def convertToken(token: Token): IElementType = token match {
-        case _: IdToken => McIdeaLexer.ID
-        case _: StringToken => McIdeaLexer.STRING
+        case _: IdToken        => McIdeaLexer.ID
+        case _: StringToken    => McIdeaLexer.STRING
         case _: DecNumberToken => McIdeaLexer.DEC_NUMBER
 
-        case _: EofToken => null
-        case _: CommentToken => McIdeaLexer.COMMENT
-        case _: ErrorToken => McIdeaLexer.ERROR
+        case _: WhitespaceToken => TokenType.WHITE_SPACE
+        case _: NewlineToken    => TokenType.NEW_LINE_INDENT
+        case _: EofToken        => null
+        case _: CommentToken    => McIdeaLexer.COMMENT
+        case _: ErrorToken      => TokenType.ERROR_ELEMENT
 
-        case _: KwValToken => McIdeaLexer.KW_VAL
-        case _: KwVarToken => McIdeaLexer.KW_VAR
-        case _: KwDefToken => McIdeaLexer.KW_DEF
-        case _: KwClassToken => McIdeaLexer.KW_CLASS
-        case _: KwInterfaceToken => McIdeaLexer.KW_INTERFACE
-        case _: KwPublicToken => McIdeaLexer.KW_PUBLIC
-        case _: KwPrivateToken => McIdeaLexer.KW_PRIVATE
-        case _: KwFinalToken => McIdeaLexer.KW_FINAL
-        case _: KwExtendsToken => McIdeaLexer.KW_EXTENDS
+        case _: KwValToken        => McIdeaLexer.KW_VAL
+        case _: KwVarToken        => McIdeaLexer.KW_VAR
+        case _: KwDefToken        => McIdeaLexer.KW_DEF
+        case _: KwClassToken      => McIdeaLexer.KW_CLASS
+        case _: KwInterfaceToken  => McIdeaLexer.KW_INTERFACE
+        case _: KwPublicToken     => McIdeaLexer.KW_PUBLIC
+        case _: KwPrivateToken    => McIdeaLexer.KW_PRIVATE
+        case _: KwFinalToken      => McIdeaLexer.KW_FINAL
+        case _: KwExtendsToken    => McIdeaLexer.KW_EXTENDS
         case _: KwImplementsToken => McIdeaLexer.KW_IMPLEMENTS
-        case _: KwOverrideToken => McIdeaLexer.KW_OVERRIDE
-        case _: KwAsToken => McIdeaLexer.KW_AS
-        case _: KwIsToken => McIdeaLexer.KW_IS
-        case _: KwThisToken => McIdeaLexer.KW_THIS
-        case _: KwSuperToken => McIdeaLexer.KW_SUPER
+        case _: KwOverrideToken   => McIdeaLexer.KW_OVERRIDE
+        case _: KwAsToken         => McIdeaLexer.KW_AS
+        case _: KwIsToken         => McIdeaLexer.KW_IS
+        case _: KwThisToken       => McIdeaLexer.KW_THIS
+        case _: KwSuperToken      => McIdeaLexer.KW_SUPER
 
         case _: SemicolonToken => McIdeaLexer.SEMICOLON
-        case _: ColonToken => McIdeaLexer.COLON
-        case _: CommaToken => McIdeaLexer.COMMA
+        case _: ColonToken     => McIdeaLexer.COLON
+        case _: CommaToken     => McIdeaLexer.COMMA
 
         case _: AssignToken => McIdeaLexer.ASSIGN
-        case _: PlusToken => McIdeaLexer.PLUS
-        case _: MinusToken => McIdeaLexer.MINUS
-        case _: TimesToken => McIdeaLexer.TIMES
+        case _: PlusToken   => McIdeaLexer.PLUS
+        case _: MinusToken  => McIdeaLexer.MINUS
+        case _: TimesToken  => McIdeaLexer.TIMES
         case _: DivideToken => McIdeaLexer.DIVIDE
 
-        case _: OpenParenToken => McIdeaLexer.OPEN_PAREN
-        case _: CloseParenToken => McIdeaLexer.CLOSE_PAREN
-        case _: OpenCurlyBraceToken => McIdeaLexer.OPEN_CURLY_BRACE
+        case _: OpenParenToken       => McIdeaLexer.OPEN_PAREN
+        case _: CloseParenToken      => McIdeaLexer.CLOSE_PAREN
+        case _: OpenCurlyBraceToken  => McIdeaLexer.OPEN_CURLY_BRACE
         case _: CloseCurlyBraceToken => McIdeaLexer.CLOSE_CURLY_BRACE
 
         case _ => throw new IllegalArgumentException("Invalid token")

@@ -9,6 +9,8 @@ final case class IdToken(text: String, position: TokenPosition, name: String) ex
 final case class StringToken(text: String, position: TokenPosition, value: String) extends Token
 final case class DecNumberToken(text: String, position: TokenPosition, value: BigInt) extends Token
 
+final case class WhitespaceToken(text: String, position: TokenPosition) extends Token
+final case class NewlineToken(text: String, position: TokenPosition) extends Token
 final case class EofToken(text: String, position: TokenPosition) extends Token
 final case class CommentToken(text: String, position: TokenPosition) extends Token
 final case class ErrorToken(text: String, position: TokenPosition) extends Token

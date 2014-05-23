@@ -75,12 +75,18 @@ final class LexerTest extends FlatSpec {
         assert(token.asInstanceOf[StringToken].value.equals(value))
     }
 
-    def expectToken[T <: Token : ClassTag]() = {
+    def expectToken[T <: Token : ClassTag](): Token = {
         val token = lexer.nextToken()
-        assume(token != null)
 
-        val classOfT = implicitly[ClassTag[T]].runtimeClass
-        assert(classOfT.isInstance(token))
-        token
+        token match {
+            case (WhitespaceToken(_,_) | NewlineToken(_,_)) =>
+                expectToken[T]()
+            case _ =>
+                assume(token != null)
+
+                val classOfT = implicitly[ClassTag[T]].runtimeClass
+                assert(classOfT.isInstance(token))
+                token
+        }
     }
 }

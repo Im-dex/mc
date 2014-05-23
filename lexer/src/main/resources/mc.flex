@@ -149,8 +149,8 @@ Identifier = [a-zA-Z_$][a-zA-Z_$0-9]*
     {Comment} { resetAfterState(); return makeToken(CommentToken.class); }
 
     // whitespace
-    {WhiteSpace} { resetAfterState(); }
-    {LineEnding} { resetAfterState(); }
+    {WhiteSpace} { resetAfterState(); return makeToken(WhitespaceToken.class); }
+    {LineEnding} { resetAfterState(); return makeToken(NewlineToken.class); }
 
     [^] { string.setLength(0);
           begin = yychar;

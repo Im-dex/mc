@@ -19,7 +19,7 @@ import org.mc.lexer.McLexer;
 import java.io.Reader;
 
 public class McParserDefinition implements ParserDefinition {
-    public static final TokenSet WHITE_SPACES = TokenSet.create(TokenType.WHITE_SPACE);
+    public static final TokenSet WHITE_SPACES = TokenSet.create(TokenType.WHITE_SPACE, TokenType.NEW_LINE_INDENT);
     public static final TokenSet COMMENTS = TokenSet.create(McIdeaLexer.COMMENT());
     public static final TokenSet STRING = TokenSet.create(McIdeaLexer.STRING());
 

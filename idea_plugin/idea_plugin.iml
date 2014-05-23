@@ -17,6 +17,7 @@
     <orderEntry type="jdk" jdkName="IDEA IC-135.690" jdkType="IDEA JDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="lexer" />
+    <orderEntry type="module" module-name="parser" />
   </component>
 </module>
 

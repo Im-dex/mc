@@ -13,25 +13,27 @@ import com.intellij.psi.TokenType;
 import com.intellij.psi.tree.IFileElementType;
 import com.intellij.psi.tree.TokenSet;
 import org.jetbrains.annotations.NotNull;
+import org.mc.idea_plugin.psi.McTypes;
+import org.mc.lexer.McLexer;
 
 import java.io.Reader;
 
 public class McParserDefinition implements ParserDefinition {
     public static final TokenSet WHITE_SPACES = TokenSet.create(TokenType.WHITE_SPACE);
-    public static final TokenSet COMMENTS = TokenSet.create(McLexer.COMMENT());
-    public static final TokenSet STRING = TokenSet.create(McLexer.STRING());
+    public static final TokenSet COMMENTS = TokenSet.create(McIdeaLexer.COMMENT());
+    public static final TokenSet STRING = TokenSet.create(McIdeaLexer.STRING());
 
     public static final IFileElementType FILE = new IFileElementType(Language.<McLanguage>findInstance(McLanguage.class));
 
     @NotNull
     @Override
     public Lexer createLexer(Project project) {
-        return new McLexer(new JFlexLexer((Reader)null));
+        return new McIdeaLexer(new McLexer((Reader)null));
     }
 
     @Override
     public PsiParser createParser(Project project) {
-        return new McParser();
+        return new McIdeaParser();
     }
 
     @Override
@@ -60,7 +62,7 @@ public class McParserDefinition implements ParserDefinition {
     @NotNull
     @Override
     public PsiElement createElement(ASTNode node) {
-        return null;
+        return McTypes.createPsiElement(node);
     }
 
     @Override

@@ -34,7 +34,7 @@ final class McScanner(val reader: InputStreamReader) extends Scanner
         token match {
             case _: EofToken =>
                 isEof = true
-                new Symbol(Terminals.MY_EOF, null)
+                new Symbol(Terminals.SEMICOLON, null)
             case _ =>
                 try {
                     convertToken(token)
@@ -52,30 +52,32 @@ final class McScanner(val reader: InputStreamReader) extends Scanner
 
     @throws(classOf[SkipTokenException])
     private def extractType(token: Token): Short = token match {
-        case _: IdToken              => Terminals.ID
-        case _: StringToken          => Terminals.STRING
-        case _: DecNumberToken       => Terminals.DEC_NUMBER
+        case IdToken(_,_,_)            => Terminals.ID
+        case StringToken(_,_,_)        => Terminals.STRING
+        case DecNumberToken(_,_,_)     => Terminals.DEC_NUMBER
 
-        case _: EofToken             => Terminals.EOF
-        case _: CommentToken         => throw SkipTokenException("Comment")
-        case _: ErrorToken           => throw new Scanner.Exception("error token")
+        case WhitespaceToken(_,_)      => throw SkipTokenException("Whitespace")
+        case NewlineToken(_,_)         => throw SkipTokenException("Newline")
+        case EofToken(_,_)             => Terminals.EOF
+        case CommentToken(_,_)         => throw SkipTokenException("Comment")
+        case ErrorToken(_,_)           => throw new Scanner.Exception("error token")
 
-        //case _: KwValToken           => Terminals.VAL
-        //case _: KwVarToken           => Terminals.VAR
+        //case KwValToken(_,_)           => Terminals.VAL
+        //case KwVarToken(_,_)           => Terminals.VAR
 
-        case _: SemicolonToken       => Terminals.SEMICOLON
-        //case _: ColonToken           => Terminals.COLON
+        case SemicolonToken(_,_)       => Terminals.SEMICOLON
+        //case ColonToken(_,_)           => Terminals.COLON
 
-        //case _: AssignToken          => Terminals.ASSIGN
-        case _: PlusToken            => Terminals.PLUS
-        case _: MinusToken           => Terminals.MINUS
-        case _: TimesToken           => Terminals.TIMES
-        case _: DivideToken          => Terminals.DIVIDE
+        //case AssignToken(_,_)          => Terminals.ASSIGN
+        case PlusToken(_,_)            => Terminals.PLUS
+        case MinusToken(_,_)           => Terminals.MINUS
+        case TimesToken(_,_)           => Terminals.TIMES
+        case DivideToken(_,_)          => Terminals.DIVIDE
 
-        case _: OpenParenToken       => Terminals.OPEN_PAREN
-        case _: CloseParenToken      => Terminals.CLOSE_PAREN
-        //case _: OpenCurlyBraceToken  => Terminals.OPEN_CURLY_BRACE
-        //case _: CloseCurlyBraceToken => Terminals.CLOSE_CURLY_BRACE
+        case OpenParenToken(_,_)       => Terminals.OPEN_PAREN
+        case CloseParenToken(_,_)      => Terminals.CLOSE_PAREN
+        //case OpenCurlyBraceToken(_,_)  => Terminals.OPEN_CURLY_BRACE
+        //case CloseCurlyBraceToken(_,_) => Terminals.CLOSE_CURLY_BRACE
 
         case _                    => throw new IllegalArgumentException("Unknown token")
     }

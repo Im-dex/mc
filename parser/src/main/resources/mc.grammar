@@ -3,7 +3,7 @@
 %import "org.mc.parser.*";
 %class "McParser";
 
-%terminals ID, STRING, DEC_NUMBER, MY_EOF;
+%terminals ID, STRING, DEC_NUMBER;
 %terminals OPEN_PAREN, CLOSE_PAREN;
 %terminals SEMICOLON, COLON, COMMA, ASSIGN, PLUS, MINUS, TIMES, DIVIDE;
 %terminals VAR, VAL, DEF, CLASS, INTERFACE, PUBLIC, PRIVATE, FINAL, EXTENDS, IMPLEMENTS, OVERRIDE, AS, IS, THIS, SUPER;
@@ -26,13 +26,12 @@
 
 ast
     = expr.e+ {: return new ExpressionList(ScalaUtils.makeList(e)); :}
-    | MY_EOF  {: return new ExpressionList(ScalaUtils.<Expression>makeList()); :}
     ;
 
 expr
     = sub_expr.e SEMICOLON {: return e; :}
+    | SEMICOLON            {: return new ExpressionList(ScalaUtils.<Expression>makeList()); :}
     | error SEMICOLON      {: return new ErrorExpression(); :}
-    | error MY_EOF         {: return new ErrorExpression(); :}
     ;
 
 sub_expr

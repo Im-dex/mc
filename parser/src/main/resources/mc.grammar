@@ -19,14 +19,20 @@
 %typeof DEC_NUMBER = "DecNumberToken";
 
 %typeof ast = "Ast";
+%typeof expr_list = "ExpressionList";
 %typeof expr = "Expression";
 %typeof sub_expr = "Expression";
 
 %goal ast;
 
 ast
-    = expr.e+ {: return new ExpressionList(ScalaUtils.makeList(e)); :}
+    = expr_list.list {: return list; :}
     ;
+
+expr_list
+         = expr.e                {: return new ExpressionList(ScalaUtils.makeList(e)); :}
+         | expr_list.list expr.e {: return new ExpressionList(ScalaUtils.put(list.expressions(), e)); :}
+         ;
 
 expr
     = sub_expr.e SEMICOLON {: return e; :}

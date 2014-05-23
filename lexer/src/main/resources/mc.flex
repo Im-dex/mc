@@ -22,12 +22,12 @@ import java.lang.reflect.InvocationTargetException;
 
 %{
 
-private int getTokenBeginOffset() {
+private int getTokenEndOffset() {
     return yytext().length() - yychar;
 }
 
 private TokenPosition getTokenPosition() {
-    return new TokenPosition(yyline, yycolumn, getTokenBeginOffset(), yychar);
+    return new TokenPosition(yyline, yycolumn, yychar, getTokenEndOffset());
 }
 
 

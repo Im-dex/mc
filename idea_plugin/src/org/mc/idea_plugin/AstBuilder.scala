@@ -16,7 +16,6 @@ object AstBuilder {
     private def buildImpl(ast: Ast, builder: PsiBuilder): Unit = {
         ast match {
             case ExpressionList(expressions) =>
-                builder.advanceLexer()
                 val mark = builder.mark()
                 expressions.foreach(buildImpl(_, builder))
                 mark.done(McTypes.EXPRESSION_LIST)

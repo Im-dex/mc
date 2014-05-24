@@ -15,6 +15,7 @@ sealed abstract class Literal extends Expression with Immutable
 //=========================================================================================================
 
 final case class ExpressionList(expressions: List[Expression]) extends Ast with Immutable
+final case class EmptyExpression() extends Expression with Immutable
 final case class ErrorExpression() extends Expression with Immutable
 
 final case class AddExpression(override val left: Expression, override val right: Expression) extends BinaryExpression(left, right) with Immutable

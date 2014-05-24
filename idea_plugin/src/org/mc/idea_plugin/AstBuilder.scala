@@ -5,7 +5,9 @@ import com.intellij.lang.{ASTNode, PsiBuilder}
 import org.mc.parser.BinaryExpression
 import org.mc.parser.UnaryExpression
 import org.mc.parser.ExpressionList
+import org.mc.parser.Expression
 import org.mc.idea_plugin.psi.McTypes
+import com.intellij.psi.tree.IElementType
 
 object AstBuilder {
     def build(ast: Ast, builder: PsiBuilder): ASTNode = {
@@ -19,48 +21,56 @@ object AstBuilder {
                 val mark = builder.mark()
                 expressions.foreach(buildImpl(_, builder))
                 mark.done(McTypes.EXPRESSION_LIST)
-            case expr: BinaryExpression =>
-                val mark = builder.mark()
-                buildImpl(expr.left, builder)
-                builder.advanceLexer() // op token
-                buildImpl(expr.right, builder)
-                doneBinaryExpression(expr, mark)
-            case expr: UnaryExpression =>
-                val mark = builder.mark()
-                builder.advanceLexer() // op token
-                buildImpl(expr.expression, builder)
-                doneUnaryExpression(expr, mark)
-            case expr: EmptyExpression =>
-                processEmptyExpression(builder)
-            case literal: Literal =>
-                val mark = builder.mark()
-                doneLiteral(literal, mark)
-                builder.advanceLexer()
+            case expr: Expression =>
+                val marker = builder.mark()
+                val markerType = buildExpression(expr, builder)
+
+                // fake empty expression before EOF
+                if (markerType == McTypes.EMPTY_EXPR && builder.lookAhead(1) == null) {
+                    marker.drop()
+                } else {
+                    marker.done(markerType)
+
+                    // attach semicolon to expression
+                    if (builder.getTokenType == McIdeaLexer.SEMICOLON) {
+                        builder.advanceLexer()
+                    }
+                }
         }
     }
 
-    private def doneBinaryExpression(expression: BinaryExpression, mark: PsiBuilder.Marker): Unit = expression match {
-        case AddExpression(_,_) => mark.done(McTypes.ADD_EXPR)
-        case SubExpression(_,_) => mark.done(McTypes.SUB_EXPR)
-        case MulExpression(_,_) => mark.done(McTypes.MUL_EXPR)
-        case DivExpression(_,_) => mark.done(McTypes.DIV_EXPR)
-    }
-
-    private def doneUnaryExpression(expression: UnaryExpression, mark: PsiBuilder.Marker): Unit = expression match {
-        case MinusExpression(expr) => mark.done(McTypes.MINUS_UNARY_EXPR)
-    }
-
-    private def processEmptyExpression(builder: PsiBuilder): Unit = builder.lookAhead(1) match {
-        case null => // eof
-        case _    =>
-            val mark = builder.mark()
+    private def buildExpression(expression: Expression, builder: PsiBuilder): IElementType = expression match {
+        case expr: BinaryExpression =>
+            buildImpl(expr.left, builder)
+            builder.advanceLexer() // op token
+            buildImpl(expr.right, builder)
+            buildBinaryExpression(expr)
+        case expr: UnaryExpression =>
+            builder.advanceLexer() // op token
+            buildImpl(expr.expression, builder)
+            buildUnaryExpression(expr)
+        case expr: EmptyExpression =>
+            McTypes.EMPTY_EXPR
+        case literal: Literal =>
+            val result = buildLiteral(literal)
             builder.advanceLexer()
-            mark.done(McTypes.EMPTY_EXPR)
+            result
     }
 
-    private def doneLiteral(literal: Literal, mark: PsiBuilder.Marker): Unit = literal match {
-        case IdLiteral(token) => mark.done(McTypes.ID_LITERAL)
-        case StringLiteral(token) => mark.done(McTypes.STRING_LITERAL)
-        case DecNumberLiteral(token) => mark.done(McTypes.DEC_NUMBER_LITERAL)
+    private def buildBinaryExpression(expression: BinaryExpression): IElementType = expression match {
+        case AddExpression(_,_) => McTypes.ADD_EXPR
+        case SubExpression(_,_) => McTypes.SUB_EXPR
+        case MulExpression(_,_) => McTypes.MUL_EXPR
+        case DivExpression(_,_) => McTypes.DIV_EXPR
+    }
+
+    private def buildUnaryExpression(expression: UnaryExpression): IElementType = expression match {
+        case MinusExpression(expr) => McTypes.MINUS_UNARY_EXPR
+    }
+
+    private def buildLiteral(literal: Literal): IElementType = literal match {
+        case IdLiteral(token)        => McTypes.ID_LITERAL
+        case StringLiteral(token)    => McTypes.STRING_LITERAL
+        case DecNumberLiteral(token) => McTypes.DEC_NUMBER_LITERAL
     }
 }

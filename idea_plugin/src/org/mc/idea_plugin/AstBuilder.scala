@@ -31,6 +31,8 @@ object AstBuilder {
                 builder.advanceLexer() // op token
                 buildImpl(expr.expression, builder)
                 doneUnaryExpression(expr, mark)
+            case expr: EmptyExpression =>
+                processEmptyExpression(builder)
             case literal: Literal =>
                 val mark = builder.mark()
                 doneLiteral(literal, mark)
@@ -38,18 +40,26 @@ object AstBuilder {
         }
     }
 
-    private def doneBinaryExpression(expression: BinaryExpression, mark: PsiBuilder.Marker) = expression match {
+    private def doneBinaryExpression(expression: BinaryExpression, mark: PsiBuilder.Marker): Unit = expression match {
         case AddExpression(_,_) => mark.done(McTypes.ADD_EXPR)
         case SubExpression(_,_) => mark.done(McTypes.SUB_EXPR)
         case MulExpression(_,_) => mark.done(McTypes.MUL_EXPR)
         case DivExpression(_,_) => mark.done(McTypes.DIV_EXPR)
     }
 
-    private def doneUnaryExpression(expression: UnaryExpression, mark: PsiBuilder.Marker) = expression match {
+    private def doneUnaryExpression(expression: UnaryExpression, mark: PsiBuilder.Marker): Unit = expression match {
         case MinusExpression(expr) => mark.done(McTypes.MINUS_UNARY_EXPR)
     }
 
-    private def doneLiteral(literal: Literal, mark: PsiBuilder.Marker) = literal match {
+    private def processEmptyExpression(builder: PsiBuilder): Unit = builder.lookAhead(1) match {
+        case null => // eof
+        case _    =>
+            val mark = builder.mark()
+            builder.advanceLexer()
+            mark.done(McTypes.EMPTY_EXPR)
+    }
+
+    private def doneLiteral(literal: Literal, mark: PsiBuilder.Marker): Unit = literal match {
         case IdLiteral(token) => mark.done(McTypes.ID_LITERAL)
         case StringLiteral(token) => mark.done(McTypes.STRING_LITERAL)
         case DecNumberLiteral(token) => mark.done(McTypes.DEC_NUMBER_LITERAL)

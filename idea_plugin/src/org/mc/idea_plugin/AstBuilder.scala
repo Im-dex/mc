@@ -22,53 +22,51 @@ object AstBuilder {
                 expressions.foreach(buildImpl(_, builder))
                 mark.done(McTypes.EXPRESSION_LIST)
             case expr: Expression =>
-                val marker = builder.mark()
-                val markerType = buildExpression(expr, builder)
+                buildExpression(expr, builder)
 
-                // fake empty expression before EOF
-                if (markerType == McTypes.EMPTY_EXPR && builder.lookAhead(1) == null) {
-                    marker.drop()
-                } else {
-                    marker.done(markerType)
-
-                    // attach semicolon to expression
-                    if (builder.getTokenType == McIdeaLexer.SEMICOLON) {
-                        builder.advanceLexer()
-                    }
-                }
+                // skip semicolon at the expression end
+                if (builder.getTokenType == McIdeaLexer.SEMICOLON)
+                    builder.advanceLexer()
         }
     }
 
-    private def buildExpression(expression: Expression, builder: PsiBuilder): IElementType = expression match {
+    private def buildExpression(expression: Expression, builder: PsiBuilder): Unit = expression match {
         case expr: BinaryExpression =>
+            val marker = builder.mark()
             buildImpl(expr.left, builder)
             builder.advanceLexer() // op token
             buildImpl(expr.right, builder)
-            buildBinaryExpression(expr)
+            marker.done(getBinaryExpressionType(expr))
         case expr: UnaryExpression =>
+            val marker = builder.mark()
             builder.advanceLexer() // op token
             buildImpl(expr.expression, builder)
-            buildUnaryExpression(expr)
+            marker.done(getUnaryExpressionType(expr))
         case expr: EmptyExpression =>
-            McTypes.EMPTY_EXPR
+            if (builder.lookAhead(2) != null) {
+                val marker = builder.mark()
+                marker.done(McTypes.EMPTY_EXPR)
+            } else {
+                builder.advanceLexer()
+            }
         case literal: Literal =>
-            val result = buildLiteral(literal)
+            val marker = builder.mark()
             builder.advanceLexer()
-            result
+            marker.done(getLiteralType(literal))
     }
 
-    private def buildBinaryExpression(expression: BinaryExpression): IElementType = expression match {
+    private def getBinaryExpressionType(expression: BinaryExpression): IElementType = expression match {
         case AddExpression(_,_) => McTypes.ADD_EXPR
         case SubExpression(_,_) => McTypes.SUB_EXPR
         case MulExpression(_,_) => McTypes.MUL_EXPR
         case DivExpression(_,_) => McTypes.DIV_EXPR
     }
 
-    private def buildUnaryExpression(expression: UnaryExpression): IElementType = expression match {
+    private def getUnaryExpressionType(expression: UnaryExpression): IElementType = expression match {
         case MinusExpression(expr) => McTypes.MINUS_UNARY_EXPR
     }
 
-    private def buildLiteral(literal: Literal): IElementType = literal match {
+    private def getLiteralType(literal: Literal): IElementType = literal match {
         case IdLiteral(token)        => McTypes.ID_LITERAL
         case StringLiteral(token)    => McTypes.STRING_LITERAL
         case DecNumberLiteral(token) => McTypes.DEC_NUMBER_LITERAL

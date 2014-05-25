@@ -23,14 +23,23 @@ object AstBuilder {
                 mark.done(McTypes.EXPRESSION_LIST)
             case expr: Expression =>
                 buildExpression(expr, builder)
-
-                // skip semicolon at the expression end
-                if (builder.getTokenType == McIdeaLexer.SEMICOLON)
-                    builder.advanceLexer()
+                skipToken(builder, McIdeaLexer.SEMICOLON)
         }
     }
 
+    // skip current token if its type equals tokenType
+    private def skipToken(builder: PsiBuilder, tokenType: IElementType): Unit = {
+        if (builder.getTokenType == tokenType)
+            builder.advanceLexer()
+    }
+
     private def buildExpression(expression: Expression, builder: PsiBuilder): Unit = expression match {
+        case ParenthesizedExpression(expr) =>
+            val marker = builder.mark()
+            skipToken(builder, McIdeaLexer.OPEN_PAREN)
+            buildImpl(expr, builder)
+            skipToken(builder, McIdeaLexer.CLOSE_PAREN)
+            marker.done(McTypes.PARENTHESIZED_EXPR)
         case expr: BinaryExpression =>
             val marker = builder.mark()
             buildImpl(expr.left, builder)

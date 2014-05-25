@@ -43,6 +43,6 @@ sub_expr
     | ID.literal                          {: return new IdLiteral(literal); :}
     | STRING.literal                      {: return new StringLiteral(literal); :}
     | DEC_NUMBER.literal                  {: return new DecNumberLiteral(literal); :}
-    | OPEN_PAREN sub_expr.e CLOSE_PAREN   {: return e; :}
+    | OPEN_PAREN sub_expr.e CLOSE_PAREN   {: return new ParenthesizedExpression(e); :}
     ;
 

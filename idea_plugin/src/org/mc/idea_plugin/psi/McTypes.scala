@@ -11,6 +11,7 @@ object McTypes {
     val DEC_NUMBER_LITERAL: IElementType = new McElementType("DEC_NUMBER")
 
     val EXPRESSION_LIST: IElementType = new McElementType("EXPRESSION_LIST")
+    val ERROR_EXPRESSION: IElementType = new McElementType("ERROR_EXPRESSION")
     val PARENTHESIZED_EXPR: IElementType = new McElementType("PARENTHESIZED_EXPR")
     val EMPTY_EXPR: IElementType = new McElementType("EMPTY_EXPR")
     val MINUS_UNARY_EXPR: IElementType = new McElementType("MINUS_UNARY_EXPR")
@@ -25,6 +26,7 @@ object McTypes {
             case STRING_LITERAL     => new StringElement(node)
             case DEC_NUMBER_LITERAL => new DecNumberElement(node)
             case EXPRESSION_LIST    => new ExpressionListElement(node)
+            case ERROR_EXPRESSION   => new ErrorExpressionElement(node)
             case PARENTHESIZED_EXPR => new ParenthesizedExpressionElement(node)
             case EMPTY_EXPR         => new EmptyExpressionElement(node)
             case MINUS_UNARY_EXPR   => new MinusUnaryExpressionElement(node)

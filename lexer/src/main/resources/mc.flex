@@ -1,8 +1,6 @@
 package org.mc.lexer;
 
 import java.lang.reflect.Constructor;
-import scala.math.BigInt;
-import java.math.BigInteger;
 import java.lang.reflect.InvocationTargetException;
 
 %%
@@ -17,7 +15,7 @@ import java.lang.reflect.InvocationTargetException;
 %function nextToken
 
 %eofval{
-    return new EofToken("", new TokenPosition(-1, -1, -1, -1));
+    return makeSimpleToken(EofToken.class);
 %eofval}
 
 %{
@@ -26,15 +24,24 @@ private int getTokenEndOffset() {
     return yytext().length() - yychar;
 }
 
-private TokenPosition getTokenPosition() {
-    return new TokenPosition(yyline, yycolumn, yychar, getTokenEndOffset());
+private TokenPosition calcTokenPosition(int line, int column) {
+    return new TokenPosition(line, column, yychar, getTokenEndOffset(), tokenIndex++);
 }
 
+private <T extends Token> T makeSimpleToken(Class<T> type) {
+    TokenPosition tokenPosition = calcTokenPosition(yyline, yycolumn);
+    return makeToken(type, tokenPosition);
+}
 
-private <T extends Token> T makeToken(Class<T> type) {
+private <T extends Token> T makeExtraToken(Class<T> type) {
+    TokenPosition tokenPosition = calcTokenPosition(extraLine, extraColumn);
+    return makeToken(type, tokenPosition);
+}
+
+private <T extends Token> T makeToken(Class<T> type, TokenPosition position) {
     try {
-        Constructor<T> constructor = type.getDeclaredConstructor(String.class, TokenPosition.class);
-        return constructor.newInstance(yytext(), getTokenPosition());
+        Constructor<T> constructor = type.getDeclaredConstructor(TokenPosition.class);
+        return constructor.newInstance(position);
     } catch (NoSuchMethodException e) {
         throw new IllegalStateException(e);
     }
@@ -49,30 +56,16 @@ private <T extends Token> T makeToken(Class<T> type) {
     }
 }
 
-private Token makeNumberToken(String value) {
-    BigInteger intValue = new BigInteger(value);
-    return new DecNumberToken(yytext(), getTokenPosition(), new BigInt(intValue));
-}
-
-private Token makeHexNumberToken(String value) {
-    BigInteger intValue = new BigInteger(value.substring(2), 16);
-    return new DecNumberToken(yytext(), getTokenPosition(), new BigInt(intValue));
-}
-
-private IdToken makeIdToken() {
-    return new IdToken(yytext(), getTokenPosition(), yytext());
-}
-
 private void resetAfterState() {
     if (yystate() == AFTER) {
         yybegin(YYINITIAL);
     }
 }
 
-private final StringBuilder string = new StringBuilder();
-private int begin = -1;
-private int line = -1;
-private int column= -1;
+private int extraLine = -1;
+private int extraColumn = -1;
+
+private int tokenIndex = 0;
 
 %}
 
@@ -97,86 +90,80 @@ Identifier = [a-zA-Z_$][a-zA-Z_$0-9]*
 
 <YYINITIAL> {
     // keywords
-    "val"        { yybegin(AFTER); return makeToken(KwValToken.class); }
-    "var"        { yybegin(AFTER); return makeToken(KwVarToken.class); }
-    "def"        { yybegin(AFTER); return makeToken(KwDefToken.class); }
-    "class"      { yybegin(AFTER); return makeToken(KwClassToken.class); }
-    "interface"  { yybegin(AFTER); return makeToken(KwInterfaceToken.class); }
-    "public"     { yybegin(AFTER); return makeToken(KwPublicToken.class); }
-    "private"    { yybegin(AFTER); return makeToken(KwPrivateToken.class); }
-    "final"      { yybegin(AFTER); return makeToken(KwFinalToken.class); }
-    "extends"    { yybegin(AFTER); return makeToken(KwExtendsToken.class); }
-    "implements" { yybegin(AFTER); return makeToken(KwImplementsToken.class); }
-    "override"   { yybegin(AFTER); return makeToken(KwOverrideToken.class); }
-    "as"         { yybegin(AFTER); return makeToken(KwAsToken.class); }
-    "is"         { yybegin(AFTER); return makeToken(KwIsToken.class); }
-    "this"       { yybegin(AFTER); return makeToken(KwThisToken.class); }
-    "super"      { yybegin(AFTER); return makeToken(KwSuperToken.class); }
+    "val"        { yybegin(AFTER); return makeSimpleToken(KwValToken.class); }
+    "var"        { yybegin(AFTER); return makeSimpleToken(KwVarToken.class); }
+    "def"        { yybegin(AFTER); return makeSimpleToken(KwDefToken.class); }
+    "class"      { yybegin(AFTER); return makeSimpleToken(KwClassToken.class); }
+    "interface"  { yybegin(AFTER); return makeSimpleToken(KwInterfaceToken.class); }
+    "public"     { yybegin(AFTER); return makeSimpleToken(KwPublicToken.class); }
+    "private"    { yybegin(AFTER); return makeSimpleToken(KwPrivateToken.class); }
+    "final"      { yybegin(AFTER); return makeSimpleToken(KwFinalToken.class); }
+    "extends"    { yybegin(AFTER); return makeSimpleToken(KwExtendsToken.class); }
+    "implements" { yybegin(AFTER); return makeSimpleToken(KwImplementsToken.class); }
+    "override"   { yybegin(AFTER); return makeSimpleToken(KwOverrideToken.class); }
+    "as"         { yybegin(AFTER); return makeSimpleToken(KwAsToken.class); }
+    "is"         { yybegin(AFTER); return makeSimpleToken(KwIsToken.class); }
+    "this"       { yybegin(AFTER); return makeSimpleToken(KwThisToken.class); }
+    "super"      { yybegin(AFTER); return makeSimpleToken(KwSuperToken.class); }
 
     // string
-    \" { string.setLength(0);
-         begin = yychar;
-         line = yyline;
-         column = yycolumn;
+    \" { extraLine = yyline;
+         extraColumn = yycolumn;
          yybegin(STRING); }
 
     // Identifier
-    {Identifier} { yybegin(AFTER); return makeIdToken(); }
+    {Identifier} { yybegin(AFTER); return makeSimpleToken(IdToken.class); }
 
     // Integer
-    {DecInteger} { yybegin(AFTER); return makeNumberToken(yytext()); }
-    {HexInteger} { yybegin(AFTER); return makeHexNumberToken(yytext()); }
+    {DecInteger}|{HexInteger} { yybegin(AFTER); return makeSimpleToken(DecNumberToken.class); }
 }
 
 <YYINITIAL, AFTER> {
-    ";" { resetAfterState(); return makeToken(SemicolonToken.class); }
-    ":" { resetAfterState(); return makeToken(ColonToken.class); }
-    "," { resetAfterState(); return makeToken(CommaToken.class); }
+    ";" { resetAfterState(); return makeSimpleToken(SemicolonToken.class); }
+    ":" { resetAfterState(); return makeSimpleToken(ColonToken.class); }
+    "," { resetAfterState(); return makeSimpleToken(CommaToken.class); }
 
     // operators
-    "=" { resetAfterState(); return makeToken(AssignToken.class); }
-    "+" { resetAfterState(); return makeToken(PlusToken.class);}
-    "-" { resetAfterState(); return makeToken(MinusToken.class); }
-    "*" { resetAfterState(); return makeToken(TimesToken.class); }
-    "/" { resetAfterState(); return makeToken(DivideToken.class); }
+    "=" { resetAfterState(); return makeSimpleToken(AssignToken.class); }
+    "+" { resetAfterState(); return makeSimpleToken(PlusToken.class);}
+    "-" { resetAfterState(); return makeSimpleToken(MinusToken.class); }
+    "*" { resetAfterState(); return makeSimpleToken(TimesToken.class); }
+    "/" { resetAfterState(); return makeSimpleToken(DivideToken.class); }
 
-    "(" { resetAfterState(); return makeToken(OpenParenToken.class); }
-    ")" { resetAfterState(); return makeToken(CloseParenToken.class); }
-    "{" { resetAfterState(); return makeToken(OpenCurlyBraceToken.class); }
-    "}" { resetAfterState(); return makeToken(CloseCurlyBraceToken.class); }
+    "(" { resetAfterState(); return makeSimpleToken(OpenParenToken.class); }
+    ")" { resetAfterState(); return makeSimpleToken(CloseParenToken.class); }
+    "{" { resetAfterState(); return makeSimpleToken(OpenCurlyBraceToken.class); }
+    "}" { resetAfterState(); return makeSimpleToken(CloseCurlyBraceToken.class); }
 
     // comments
-    {Comment} { resetAfterState(); return makeToken(CommentToken.class); }
+    {Comment} { resetAfterState(); return makeSimpleToken(CommentToken.class); }
 
     // whitespace
-    {WhiteSpace} { resetAfterState(); return makeToken(WhitespaceToken.class); }
-    {LineEnding} { resetAfterState(); return makeToken(NewlineToken.class); }
+    {WhiteSpace} { resetAfterState(); return makeSimpleToken(WhitespaceToken.class); }
+    {LineEnding} { resetAfterState(); return makeSimpleToken(NewlineToken.class); }
 
-    [^] { string.setLength(0);
-          begin = yychar;
-          line = yyline;
-          column = yycolumn;
+    [^] { extraLine = yyline;
+          extraColumn = yycolumn;
           yybegin(ERROR); }
 }
 
-
 <STRING> {
     \" { yybegin(YYINITIAL);
-         return new StringToken("\"" + string.toString() + "\"", getTokenPosition(), string.toString()); }
+         return makeExtraToken(StringToken.class); }
 
-    [^\n\r\"\\]+    { string.append(yytext()); }
-    \\t             { string.append('\t'); }
-    \\n             { string.append('\n'); }
+    [^\n\r\"\\]+    {  }
+    \\t             {  }
+    \\n             {  }
 
-    \\r             { string.append('\r'); }
-    \\\"            { string.append('\"'); }
-    \\              { string.append('\\'); }
+    \\r             {  }
+    \\\"            {  }
+    \\              {  }
 
     //TODO: {LineEnding}    { yybegin(ERROR); }
 }
 
 <ERROR> {
     {WhiteSpace}|{LineEnding} { yybegin(YYINITIAL);
-                                return makeToken(ErrorToken.class); }
-    [^] { string.append(yytext()); }
+                                return makeExtraToken(ErrorToken.class); }
+    [^] {  }
 }

@@ -14,40 +14,40 @@ final class LexerTest extends FlatSpec {
 
     "Lexemes" should "be as expected" in {
         expectToken[KwValToken]()
-        expectId("id")
+        expectToken[IdToken]()
         expectToken[AssignToken]()
-        expectNumber(0xf0)
+        expectToken[DecNumberToken]()
         expectToken[SemicolonToken]()
 
         expectToken[CommentToken]()
 
         expectToken[KwVarToken]()
-        expectId("test")
+        expectToken[IdToken]()
         expectToken[AssignToken]()
-        expectString("String \t str")
+        expectToken[StringToken]()
         expectToken[SemicolonToken]()
 
         expectToken[CommentToken]()
 
         expectToken[KwVarToken]()
-        expectId("TEST")
+        expectToken[IdToken]()
         expectToken[AssignToken]()
-        expectNumber(42)
+        expectToken[DecNumberToken]()
         expectToken[SemicolonToken]()
 
-        expectId("badId")
+        expectToken[IdToken]()
         expectToken[ErrorToken]()
 
         expectToken[CommentToken]()
 
-        expectNumber(0)
+        expectToken[DecNumberToken]()
         expectToken[ErrorToken]()
-        expectNumber(17)
+        expectToken[DecNumberToken]()
         expectToken[SemicolonToken]()
 
         expectToken[CommentToken]()
 
-        expectNumber(11)
+        expectToken[DecNumberToken]()
         expectToken[ErrorToken]()
 
         expectToken[PlusToken]()
@@ -60,26 +60,11 @@ final class LexerTest extends FlatSpec {
         expectToken[EofToken]()
     }
 
-    def expectId(name: String) {
-        val token = expectToken[IdToken]()
-        assert(token.asInstanceOf[IdToken].name.equals(name))
-    }
-
-    def expectNumber(value: BigInt) {
-        val token = expectToken[DecNumberToken]()
-        assert(token.asInstanceOf[DecNumberToken].value.equals(value))
-    }
-
-    def expectString(value: String) {
-        val token = expectToken[StringToken]()
-        assert(token.asInstanceOf[StringToken].value.equals(value))
-    }
-
     def expectToken[T <: Token : ClassTag](): Token = {
         val token = lexer.nextToken()
 
         token match {
-            case (WhitespaceToken(_,_) | NewlineToken(_,_)) =>
+            case (WhitespaceToken(_) | NewlineToken(_)) =>
                 expectToken[T]()
             case _ =>
                 assume(token != null)

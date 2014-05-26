@@ -13,17 +13,20 @@ object McScanner {
     def apply(reader: InputStreamReader) = {
         new McScanner(reader)
     }
+
+    private val MAX_EOF_SEMICOLONS = 2
 }
 
 final class McScanner(val reader: InputStreamReader) extends Scanner
                                                      with Immutable {
     private val scanner = new McLexer(reader)
     private var eofPosition: Option[TokenPosition] = None
+    private var eofSemicolonsCounter = 0
 
     @throws(classOf[Scanner.Exception])
     override def nextToken(): Symbol = {
         eofPosition match {
-            case Some(position) => new Symbol(Terminals.EOF, position)
+            case Some(position) => processEof()
             case None           => nextTokenImpl()
         }
     }
@@ -34,6 +37,7 @@ final class McScanner(val reader: InputStreamReader) extends Scanner
         token match {
             case EofToken(position) =>
                 eofPosition = Some(position)
+                eofSemicolonsCounter += 1
                 new Symbol(Terminals.SEMICOLON, position)
             case _ =>
                 try {
@@ -42,6 +46,15 @@ final class McScanner(val reader: InputStreamReader) extends Scanner
                 catch {
                     case _: SkipTokenException => nextTokenImpl()
                 }
+        }
+    }
+
+    private def processEof(): Symbol = {
+        if (eofSemicolonsCounter < McScanner.MAX_EOF_SEMICOLONS) {
+            eofSemicolonsCounter += 1
+            new Symbol(Terminals.SEMICOLON, eofPosition.get)
+        } else {
+            new Symbol(Terminals.EOF, eofPosition.get)
         }
     }
 

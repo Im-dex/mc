@@ -59,12 +59,9 @@ object AstBuilder {
             buildImpl(expr.expression, builder)
             marker.done(getUnaryExpressionType(expr))
         case expr: EmptyExpression =>
-            if (builder.lookAhead(2) != null) {
-                val marker = builder.mark()
-                marker.done(McTypes.EMPTY_EXPR)
-            } else {
-                builder.advanceLexer()
-            }
+            val marker = builder.mark()
+            builder.advanceLexer()
+            marker.done(McTypes.EMPTY_EXPR)
         case literal: Literal =>
             val marker = builder.mark()
             builder.advanceLexer()

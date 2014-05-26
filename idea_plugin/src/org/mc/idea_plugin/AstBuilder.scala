@@ -40,6 +40,13 @@ object AstBuilder {
             buildImpl(expr, builder)
             skipToken(builder, McIdeaLexer.CLOSE_PAREN)
             marker.done(McTypes.PARENTHESIZED_EXPR)
+        case ErrorExpression(beforeTokenIndex) =>
+            val marker = builder.mark()
+            // TODO: builder.error()*/
+            while (builder.rawTokenIndex() != beforeTokenIndex) {
+                builder.advanceLexer()
+            }
+            marker.done(McTypes.ERROR_EXPRESSION)
         case expr: BinaryExpression =>
             val marker = builder.mark()
             buildImpl(expr.left, builder)
@@ -76,8 +83,8 @@ object AstBuilder {
     }
 
     private def getLiteralType(literal: Literal): IElementType = literal match {
-        case IdLiteral(token)        => McTypes.ID_LITERAL
-        case StringLiteral(token)    => McTypes.STRING_LITERAL
-        case DecNumberLiteral(token) => McTypes.DEC_NUMBER_LITERAL
+        case IdLiteral()        => McTypes.ID_LITERAL
+        case StringLiteral()    => McTypes.STRING_LITERAL
+        case DecNumberLiteral() => McTypes.DEC_NUMBER_LITERAL
     }
 }

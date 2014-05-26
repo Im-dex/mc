@@ -18,13 +18,13 @@ object McScanner {
 final class McScanner(val reader: InputStreamReader) extends Scanner
                                                      with Immutable {
     private val scanner = new McLexer(reader)
-    private var isEof = false
+    private var eofPosition: Option[TokenPosition] = None
 
     @throws(classOf[Scanner.Exception])
     override def nextToken(): Symbol = {
-        isEof match {
-            case true  => new Symbol(Terminals.EOF)
-            case false => nextTokenImpl()
+        eofPosition match {
+            case Some(position) => new Symbol(Terminals.EOF, position)
+            case None           => nextTokenImpl()
         }
     }
 
@@ -32,9 +32,9 @@ final class McScanner(val reader: InputStreamReader) extends Scanner
         val token = scanner.nextToken()
 
         token match {
-            case _: EofToken =>
-                isEof = true
-                new Symbol(Terminals.SEMICOLON, null)
+            case EofToken(position) =>
+                eofPosition = Some(position)
+                new Symbol(Terminals.SEMICOLON, position)
             case _ =>
                 try {
                     convertToken(token)
@@ -47,38 +47,38 @@ final class McScanner(val reader: InputStreamReader) extends Scanner
 
     @throws(classOf[SkipTokenException])
     private def convertToken(token: Token): Symbol = {
-        new Symbol(extractType(token), token)
+        new Symbol(extractType(token), token.position)
     }
 
     @throws(classOf[SkipTokenException])
     private def extractType(token: Token): Short = token match {
-        case IdToken(_,_,_)            => Terminals.ID
-        case StringToken(_,_,_)        => Terminals.STRING
-        case DecNumberToken(_,_,_)     => Terminals.DEC_NUMBER
+        case IdToken(_)        => Terminals.ID
+        case StringToken(_)    => Terminals.STRING
+        case DecNumberToken(_) => Terminals.DEC_NUMBER
 
-        case WhitespaceToken(_,_)      => throw SkipTokenException("Whitespace")
-        case NewlineToken(_,_)         => throw SkipTokenException("Newline")
-        case EofToken(_,_)             => Terminals.EOF
-        case CommentToken(_,_)         => throw SkipTokenException("Comment")
-        case ErrorToken(_,_)           => throw new Scanner.Exception("error token")
+        case WhitespaceToken(_) => throw SkipTokenException("Whitespace")
+        case NewlineToken(_)    => throw SkipTokenException("Newline")
+        case EofToken(_)        => Terminals.EOF
+        case CommentToken(_)    => throw SkipTokenException("Comment")
+        case ErrorToken(_)      => throw new Scanner.Exception("error token")
 
-        //case KwValToken(_,_)           => Terminals.VAL
-        //case KwVarToken(_,_)           => Terminals.VAR
+        //case KwValToken(_)    => Terminals.VAL
+        //case KwVarToken(_)    => Terminals.VAR
 
-        case SemicolonToken(_,_)       => Terminals.SEMICOLON
-        //case ColonToken(_,_)           => Terminals.COLON
+        case SemicolonToken(_) => Terminals.SEMICOLON
+        //case ColonToken(_)   => Terminals.COLON
 
-        //case AssignToken(_,_)          => Terminals.ASSIGN
-        case PlusToken(_,_)            => Terminals.PLUS
-        case MinusToken(_,_)           => Terminals.MINUS
-        case TimesToken(_,_)           => Terminals.TIMES
-        case DivideToken(_,_)          => Terminals.DIVIDE
+        //case AssignToken(_) => Terminals.ASSIGN
+        case PlusToken(_)     => Terminals.PLUS
+        case MinusToken(_)    => Terminals.MINUS
+        case TimesToken(_)    => Terminals.TIMES
+        case DivideToken(_)   => Terminals.DIVIDE
 
-        case OpenParenToken(_,_)       => Terminals.OPEN_PAREN
-        case CloseParenToken(_,_)      => Terminals.CLOSE_PAREN
-        //case OpenCurlyBraceToken(_,_)  => Terminals.OPEN_CURLY_BRACE
-        //case CloseCurlyBraceToken(_,_) => Terminals.CLOSE_CURLY_BRACE
+        case OpenParenToken(_)         => Terminals.OPEN_PAREN
+        case CloseParenToken(_)        => Terminals.CLOSE_PAREN
+        //case OpenCurlyBraceToken(_)  => Terminals.OPEN_CURLY_BRACE
+        //case CloseCurlyBraceToken(_) => Terminals.CLOSE_CURLY_BRACE
 
-        case _                    => throw new IllegalArgumentException("Unknown token")
+        case _ => throw new IllegalArgumentException("Unknown token")
     }
 }

@@ -13,62 +13,62 @@ final class LexerTest extends FlatSpec {
     private val lexer = new McLexer(reader)
 
     "Lexemes" should "be as expected" in {
-        expectToken[KwVal]()
-        expectToken[IdLiteral]()
-        expectToken[Assign]()
-        expectToken[HexNumberLiteral]()
-        expectToken[Semicolon]()
+        expectToken[Token.KwVal]()
+        expectToken[Token.Id]()
+        expectToken[Token.Assign]()
+        expectToken[Token.HexNumber]()
+        expectToken[Token.Semicolon]()
 
-        expectToken[MultiLineComment]()
+        expectToken[Token.MultiLineComment]()
 
-        expectToken[KwVar]()
-        expectToken[IdLiteral]()
-        expectToken[Assign]()
-        expectToken[StringLiteral]()
-        expectToken[Semicolon]()
+        expectToken[Token.KwVar]()
+        expectToken[Token.Id]()
+        expectToken[Token.Assign]()
+        expectToken[Token.String]()
+        expectToken[Token.Semicolon]()
 
-        expectToken[SingleLineComment]()
+        expectToken[Token.SingleLineComment]()
 
-        expectToken[KwVar]()
-        expectToken[IdLiteral]()
-        expectToken[Assign]()
-        expectToken[DecNumberLiteral]()
-        expectToken[Semicolon]()
+        expectToken[Token.KwVar]()
+        expectToken[Token.Id]()
+        expectToken[Token.Assign]()
+        expectToken[Token.DecNumber]()
+        expectToken[Token.Semicolon]()
 
-        expectToken[IdLiteral]()
-        expectToken[BadCharacter]()
-        expectToken[BadCharacter]()
+        expectToken[Token.Id]()
+        expectToken[Token.BadCharacter]()
+        expectToken[Token.BadCharacter]()
 
-        expectToken[SingleLineComment]()
-        expectToken[DecNumberLiteral]()
-        expectToken[Assign]()
-        expectToken[DecNumberLiteral]()
-        expectToken[Semicolon]()
+        expectToken[Token.SingleLineComment]()
+        expectToken[Token.DecNumber]()
+        expectToken[Token.Assign]()
+        expectToken[Token.DecNumber]()
+        expectToken[Token.Semicolon]()
 
-        expectToken[SingleLineComment]()
-        expectToken[DecNumberLiteral]()
-        expectToken[IdLiteral]()
-        expectToken[Semicolon]()
+        expectToken[Token.SingleLineComment]()
+        expectToken[Token.DecNumber]()
+        expectToken[Token.Id]()
+        expectToken[Token.Semicolon]()
 
-        expectToken[Plus]()
-        expectToken[Minus]()
-        expectToken[Asterisk]()
-        expectToken[Div]()
-        expectToken[Assign]()
-        expectToken[Semicolon]()
+        expectToken[Token.Plus]()
+        expectToken[Token.Minus]()
+        expectToken[Token.Asterisk]()
+        expectToken[Token.Div]()
+        expectToken[Token.Assign]()
+        expectToken[Token.Semicolon]()
 
-        expectToken[SingleLineComment]()
-        expectToken[DecNumberLiteral]()
-        expectToken[IdLiteral]()
+        expectToken[Token.SingleLineComment]()
+        expectToken[Token.DecNumber]()
+        expectToken[Token.Id]()
 
-        expectToken[Eof]()
+        expectToken[Token.Eof]()
     }
 
     def expectToken[T <: Token : ClassTag](): Token = {
         val token = lexer.nextToken()
 
         token match {
-            case Whitespace(_) =>
+            case Token.Whitespace(_) =>
                 expectToken[T]()
             case _ =>
                 assume(token != null)

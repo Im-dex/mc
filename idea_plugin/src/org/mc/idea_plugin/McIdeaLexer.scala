@@ -5,9 +5,7 @@ import org.mc.lexer._
 import com.intellij.psi.tree.IElementType
 import java.io.StringReader
 import org.mc.idea_plugin.psi.McTokenType
-import org.mc.lexer.StringToken
 import scala.Some
-import org.mc.lexer.IdToken
 import com.intellij.psi.TokenType
 
 object McIdeaLexer {
@@ -16,10 +14,12 @@ object McIdeaLexer {
     }
 
     val ID: IElementType = new McTokenType("ID")
+    val CHAR: IElementType = new McTokenType("CHAR")
     val STRING: IElementType = new McTokenType("STRING")
-    val DEC_NUMBER: IElementType = new McTokenType("DEC_NUMBER")
+    val NUMBER: IElementType = new McTokenType("NUMBER")
 
-    val COMMENT: IElementType = new McTokenType("COMMENT")
+    val MULTI_LINE_COMMENT: IElementType = new McTokenType("MULTILINE_COMMENT")
+    val SINGLE_LINE_COMMENT: IElementType = new McTokenType("SINGLE_COMMENT")
 
     val KW_VAL: IElementType = new McTokenType("KW_VAL")
     val KW_VAR: IElementType = new McTokenType("KW_VAR")
@@ -38,19 +38,18 @@ object McIdeaLexer {
     val KW_SUPER: IElementType = new McTokenType("KW_SUPER")
 
     val SEMICOLON: IElementType = new McTokenType("SEMICOLON")
-    val COLON: IElementType = new McTokenType("COLON")
     val COMMA: IElementType = new McTokenType("COMMA")
 
     val ASSIGN: IElementType = new McTokenType("ASSIGN")
     val PLUS: IElementType = new McTokenType("PLUS")
     val MINUS: IElementType = new McTokenType("MINUS")
-    val TIMES: IElementType = new McTokenType("TIMES")
-    val DIVIDE: IElementType = new McTokenType("DIVIDE")
+    val ASTERISK: IElementType = new McTokenType("ASTERISK")
+    val DIV: IElementType = new McTokenType("DIV")
 
     val OPEN_PAREN: IElementType = new McTokenType("OPEN_PAREN")
     val CLOSE_PAREN: IElementType = new McTokenType("CLOSE_PAREN")
-    val OPEN_CURLY_BRACE: IElementType = new McTokenType("OPEN_CURLY_BRACE")
-    val CLOSE_CURLY_BRACE: IElementType = new McTokenType("CLOSE_CURLY_BRACE")
+    val OPEN_BRACE: IElementType = new McTokenType("OPEN_BRACE")
+    val CLOSE_BRACE: IElementType = new McTokenType("CLOSE_BRACE")
 }
 
 class McIdeaLexer(val lexer: McLexer) extends LexerBase {
@@ -73,7 +72,7 @@ class McIdeaLexer(val lexer: McLexer) extends LexerBase {
     }
 
     override def getTokenEnd: Int = currentToken match {
-        case Some(token) => token.position.endOffset
+        case Some(token) => startOffset + token.position.endOffset
         case _ =>
             obtainNextToken()
             getTokenEnd
@@ -93,7 +92,7 @@ class McIdeaLexer(val lexer: McLexer) extends LexerBase {
     override def getState: Int = lexer.yystate()
 
     override def getTokenStart: Int = currentToken match {
-        case Some(token) => token.position.beginOffset
+        case Some(token) => startOffset + token.position.beginOffset
         case None =>
             obtainNextToken()
             getTokenStart
@@ -106,51 +105,52 @@ class McIdeaLexer(val lexer: McLexer) extends LexerBase {
     private def reset(initialState: Int) {
         val buffer = textBuffer.subSequence(startOffset, endOffset)
         val reader = new StringReader(buffer.toString)
+        currentToken = None
         lexer.yyreset(reader)
         lexer.yybegin(initialState)
     }
 
     private def convertToken(token: Token): IElementType = token match {
-        case _: IdToken        => McIdeaLexer.ID
-        case _: StringToken    => McIdeaLexer.STRING
-        case _: DecNumberToken => McIdeaLexer.DEC_NUMBER
+        case _: Token.Id        => McIdeaLexer.ID
+        case _: Token.Char      => McIdeaLexer.CHAR
+        case _: Token.String    => McIdeaLexer.STRING
+        case _: Token.DecNumber => McIdeaLexer.NUMBER
 
-        case _: WhitespaceToken => TokenType.WHITE_SPACE
-        case _: NewlineToken    => TokenType.NEW_LINE_INDENT
-        case _: EofToken        => null
-        case _: CommentToken    => McIdeaLexer.COMMENT
-        case _: ErrorToken      => TokenType.ERROR_ELEMENT
+        case _: Token.Whitespace        => TokenType.WHITE_SPACE
+        case _: Token.Eof               => null
+        case _: Token.MultiLineComment  => McIdeaLexer.MULTI_LINE_COMMENT
+        case _: Token.SingleLineComment => McIdeaLexer.SINGLE_LINE_COMMENT
+        case _: Token.BadCharacter      => TokenType.ERROR_ELEMENT
 
-        case _: KwValToken        => McIdeaLexer.KW_VAL
-        case _: KwVarToken        => McIdeaLexer.KW_VAR
-        case _: KwDefToken        => McIdeaLexer.KW_DEF
-        case _: KwClassToken      => McIdeaLexer.KW_CLASS
-        case _: KwInterfaceToken  => McIdeaLexer.KW_INTERFACE
-        case _: KwPublicToken     => McIdeaLexer.KW_PUBLIC
-        case _: KwPrivateToken    => McIdeaLexer.KW_PRIVATE
-        case _: KwFinalToken      => McIdeaLexer.KW_FINAL
-        case _: KwExtendsToken    => McIdeaLexer.KW_EXTENDS
-        case _: KwImplementsToken => McIdeaLexer.KW_IMPLEMENTS
-        case _: KwOverrideToken   => McIdeaLexer.KW_OVERRIDE
-        case _: KwAsToken         => McIdeaLexer.KW_AS
-        case _: KwIsToken         => McIdeaLexer.KW_IS
-        case _: KwThisToken       => McIdeaLexer.KW_THIS
-        case _: KwSuperToken      => McIdeaLexer.KW_SUPER
+        case _: Token.KwVal        => McIdeaLexer.KW_VAL
+        case _: Token.KwVar        => McIdeaLexer.KW_VAR
+        case _: Token.KwDef        => McIdeaLexer.KW_DEF
+        case _: Token.KwClass      => McIdeaLexer.KW_CLASS
+        case _: Token.KwInterface  => McIdeaLexer.KW_INTERFACE
+        case _: Token.KwPublic     => McIdeaLexer.KW_PUBLIC
+        case _: Token.KwPrivate    => McIdeaLexer.KW_PRIVATE
+        case _: Token.KwFinal      => McIdeaLexer.KW_FINAL
+        case _: Token.KwExtends    => McIdeaLexer.KW_EXTENDS
+        case _: Token.KwImplements => McIdeaLexer.KW_IMPLEMENTS
+        case _: Token.KwOverride   => McIdeaLexer.KW_OVERRIDE
+        case _: Token.KwAs         => McIdeaLexer.KW_AS
+        case _: Token.KwIs         => McIdeaLexer.KW_IS
+        case _: Token.KwThis       => McIdeaLexer.KW_THIS
+        case _: Token.KwSuper      => McIdeaLexer.KW_SUPER
 
-        case _: SemicolonToken => McIdeaLexer.SEMICOLON
-        case _: ColonToken     => McIdeaLexer.COLON
-        case _: CommaToken     => McIdeaLexer.COMMA
+        case _: Token.Semicolon => McIdeaLexer.SEMICOLON
+        case _: Token.Comma     => McIdeaLexer.COMMA
 
-        case _: AssignToken => McIdeaLexer.ASSIGN
-        case _: PlusToken   => McIdeaLexer.PLUS
-        case _: MinusToken  => McIdeaLexer.MINUS
-        case _: TimesToken  => McIdeaLexer.TIMES
-        case _: DivideToken => McIdeaLexer.DIVIDE
+        case _: Token.Assign   => McIdeaLexer.ASSIGN
+        case _: Token.Plus     => McIdeaLexer.PLUS
+        case _: Token.Minus    => McIdeaLexer.MINUS
+        case _: Token.Asterisk => McIdeaLexer.ASTERISK
+        case _: Token.Div      => McIdeaLexer.DIV
 
-        case _: OpenParenToken       => McIdeaLexer.OPEN_PAREN
-        case _: CloseParenToken      => McIdeaLexer.CLOSE_PAREN
-        case _: OpenCurlyBraceToken  => McIdeaLexer.OPEN_CURLY_BRACE
-        case _: CloseCurlyBraceToken => McIdeaLexer.CLOSE_CURLY_BRACE
+        case _: Token.OpenParen  => McIdeaLexer.OPEN_PAREN
+        case _: Token.CloseParen => McIdeaLexer.CLOSE_PAREN
+        case _: Token.OpenBrace  => McIdeaLexer.OPEN_BRACE
+        case _: Token.CloseBrace => McIdeaLexer.CLOSE_BRACE
 
         case _ => throw new IllegalArgumentException("Invalid token")
     }

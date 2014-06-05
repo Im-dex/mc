@@ -3,46 +3,65 @@
 %import "org.mc.parser.*";
 %class "McParser";
 
-%terminals ID, STRING, DEC_NUMBER;
+%terminals ID, CHAR, STRING, DEC_NUMBER, HEX_NUMBER, BIN_NUMBER, FLOAT_NUMBER, HEX_FLOAT_NUMBER, DOUBLE_NUMBER, HEX_DOUBLE_NUMBER;
 %terminals OPEN_PAREN, CLOSE_PAREN;
-%terminals SEMICOLON, COLON, COMMA, ASSIGN, PLUS, MINUS, TIMES, DIVIDE;
+%terminals SEMICOLON, COMMA, ASSIGN, PLUS, MINUS, TIMES, DIVIDE;
 %terminals VAR, VAL, DEF, CLASS, INTERFACE, PUBLIC, PRIVATE, FINAL, EXTENDS, IMPLEMENTS, OVERRIDE, AS, IS, THIS, SUPER;
 
 %left OPEN_PAREN, CLOSE_PAREN;
-%right UNARY_MINUS;
+%right UNARY_MINUS, UNARY_PLUS;
 %left TIMES, DIVIDE;
 %left PLUS, MINUS, TIMES, DIVIDE;
 %right ASSIGN;
 
-%typeof ID = "IdToken";
-%typeof STRING = "StringToken";
-%typeof DEC_NUMBER = "DecNumberToken";
+%typeof ID = "Ast.IdLiteral";
+%typeof STRING = "Ast.StringLiteral";
+%typeof CHAR = "Ast.CharLiteral";
+%typeof DEC_NUMBER = "Ast.DecNumberLiteral";
+%typeof HEX_NUMBER = "Ast.HexNumberLiteral";
+%typeof BIN_NUMBER = "Ast.BinNumberLiteral";
+%typeof FLOAT_NUMBER = "Ast.FloatLiteral";
+%typeof HEX_FLOAT_NUMBER = "Ast.HexFloatLiteral";
+%typeof DOUBLE_NUMBER = "Ast.DoubleLiteral";
+%typeof HEX_DOUBLE_NUMBER = "Ast.HexDoubleLiteral";
 
 %typeof ast = "Ast";
-%typeof expr = "Expression";
-%typeof sub_expr = "Expression";
+%typeof expr = "Ast.Expression";
+%typeof sub_expr = "Ast.Expression";
+%typeof const_literal = "Ast.Literal";
 
 %goal ast;
 
 ast
-    = expr.e* {: return new ExpressionList(ScalaUtils.makeList(e)); :}
+    = expr.e* {: return new Ast.ExpressionList(ScalaUtils.makeList(e)); :}
     ;
 
 expr
     = sub_expr.e SEMICOLON {: return e; :}
-    | SEMICOLON            {: return new EmptyExpression(); :}
-    | error SEMICOLON.semi {: return new ErrorExpression(((TokenPosition)semi.value).index()); :}
+    | SEMICOLON            {: return new Ast.EmptyExpression(); :}
+    | error SEMICOLON.semi {: return new Ast.ErrorExpression(((TokenPosition)semi.value).index()); :}
     ;
 
 sub_expr
-    = sub_expr.left PLUS sub_expr.right   {: return new AddExpression(left, right); :}
-    | sub_expr.left MINUS sub_expr.right  {: return new SubExpression(left, right); :}
-    | sub_expr.left TIMES sub_expr.right  {: return new MulExpression(left, right); :}
-    | sub_expr.left DIVIDE sub_expr.right {: return new DivExpression(left, right); :}
-    | MINUS sub_expr.e @ UNARY_MINUS      {: return new MinusExpression(e); :}
-    | OPEN_PAREN sub_expr.e CLOSE_PAREN   {: return new ParenthesizedExpression(e); :}
-    | ID                                  {: return new IdLiteral(); :}
-    | STRING                              {: return new StringLiteral(); :}
-    | DEC_NUMBER                          {: return new DecNumberLiteral(); :}
+    = sub_expr.left PLUS sub_expr.right   {: return new Ast.AddExpression(left, right); :}
+    | sub_expr.left MINUS sub_expr.right  {: return new Ast.SubExpression(left, right); :}
+    | sub_expr.left TIMES sub_expr.right  {: return new Ast.MulExpression(left, right); :}
+    | sub_expr.left DIVIDE sub_expr.right {: return new Ast.DivExpression(left, right); :}
+    | MINUS sub_expr.e @ UNARY_MINUS      {: return new Ast.MinusExpression(e); :}
+    | PLUS sub_expr.e @ UNARY_PLUS        {: return new Ast.PlusExpression(e); :}
+    | OPEN_PAREN sub_expr.e CLOSE_PAREN   {: return new Ast.ParenthesizedExpression(e); :}
+    | ID                                  {: return new Ast.IdLiteral(); :}
+    | const_literal.literal               {: return literal; :}
     ;
 
+const_literal
+    = STRING            {: return new Ast.StringLiteral(); :}
+    | CHAR              {: return new Ast.CharLiteral(); :}
+    | DEC_NUMBER        {: return new Ast.DecNumberLiteral(); :}
+    | HEX_NUMBER        {: return new Ast.HexNumberLiteral(); :}
+    | BIN_NUMBER        {: return new Ast.BinNumberLiteral(); :}
+    | FLOAT_NUMBER      {: return new Ast.FloatLiteral(); :}
+    | HEX_FLOAT_NUMBER  {: return new Ast.HexFloatLiteral(); :}
+    | DOUBLE_NUMBER     {: return new Ast.DoubleLiteral(); :}
+    | HEX_DOUBLE_NUMBER {: return new Ast.HexDoubleLiteral(); :}
+    ;

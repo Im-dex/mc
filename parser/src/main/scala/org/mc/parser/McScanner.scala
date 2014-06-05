@@ -1,13 +1,23 @@
 package org.mc.parser
 
 import org.mc.lexer._
-import org.mc.lexer.DecNumberToken
-import org.mc.lexer.StringToken
-import org.mc.lexer.IdToken
 import java.io.InputStreamReader
 import org.mc.parser.error.SkipTokenException
 import beaver.Scanner
 import beaver.Symbol
+import scala.Some
+import scala.Some
+import scala.Some
+import scala.Some
+import scala.Some
+import scala.Some
+import scala.Some
+import scala.Some
+import scala.Some
+import scala.Some
+import scala.Some
+import org.mc.lexer.TokenPosition
+import scala.Some
 
 object McScanner {
     def apply(reader: InputStreamReader) = {
@@ -35,7 +45,7 @@ final class McScanner(val reader: InputStreamReader) extends Scanner
         val token = scanner.nextToken()
 
         token match {
-            case EofToken(position) =>
+            case Token.Eof(position) =>
                 eofPosition = Some(position)
                 eofSemicolonsCounter += 1
                 new Symbol(Terminals.SEMICOLON, position)
@@ -65,30 +75,30 @@ final class McScanner(val reader: InputStreamReader) extends Scanner
 
     @throws(classOf[SkipTokenException])
     private def extractType(token: Token): Short = token match {
-        case IdToken(_)        => Terminals.ID
-        case StringToken(_)    => Terminals.STRING
-        case DecNumberToken(_) => Terminals.DEC_NUMBER
+        case Token.Id(_)        => Terminals.ID
+        case Token.String(_)    => Terminals.STRING
+        case Token.DecNumber(_) => Terminals.DEC_NUMBER
 
-        case WhitespaceToken(_) => throw SkipTokenException("Whitespace")
-        case NewlineToken(_)    => throw SkipTokenException("Newline")
-        case EofToken(_)        => Terminals.EOF
-        case CommentToken(_)    => throw SkipTokenException("Comment")
-        case ErrorToken(_)      => throw new Scanner.Exception("error token")
+        case Token.Whitespace(_)        => throw SkipTokenException("Whitespace")
+        case Token.Eof(_)               => Terminals.EOF
+        case Token.MultiLineComment(_)  => throw SkipTokenException("Comment")
+        case Token.SingleLineComment(_) => throw SkipTokenException("Comment")
+        case Token.BadCharacter(_)      => throw new Scanner.Exception("error token")
 
         //case KwValToken(_)    => Terminals.VAL
         //case KwVarToken(_)    => Terminals.VAR
 
-        case SemicolonToken(_) => Terminals.SEMICOLON
-        //case ColonToken(_)   => Terminals.COLON
+        case Token.Semicolon(_) => Terminals.SEMICOLON
+        //case ColonToken(_)    => Terminals.COLON
 
-        //case AssignToken(_) => Terminals.ASSIGN
-        case PlusToken(_)     => Terminals.PLUS
-        case MinusToken(_)    => Terminals.MINUS
-        case TimesToken(_)    => Terminals.TIMES
-        case DivideToken(_)   => Terminals.DIVIDE
+        //case AssignToken(_)  => Terminals.ASSIGN
+        case Token.Plus(_)     => Terminals.PLUS
+        case Token.Minus(_)    => Terminals.MINUS
+        case Token.Asterisk(_) => Terminals.TIMES
+        case Token.Div(_)      => Terminals.DIVIDE
 
-        case OpenParenToken(_)         => Terminals.OPEN_PAREN
-        case CloseParenToken(_)        => Terminals.CLOSE_PAREN
+        case Token.OpenParen(_)        => Terminals.OPEN_PAREN
+        case Token.CloseParen(_)       => Terminals.CLOSE_PAREN
         //case OpenCurlyBraceToken(_)  => Terminals.OPEN_CURLY_BRACE
         //case CloseCurlyBraceToken(_) => Terminals.CLOSE_CURLY_BRACE
 

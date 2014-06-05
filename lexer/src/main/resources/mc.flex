@@ -15,7 +15,7 @@ import java.lang.reflect.InvocationTargetException;
 %function nextToken
 
 %eofval{
-    return makeToken(Eof.class);
+    return makeToken(Token.Eof.class);
 %eofval}
 
 %{
@@ -90,54 +90,54 @@ Identifier = [a-zA-Z][a-zA-Z_$0-9]*
 %%
 
 <YYINITIAL> {
-    {WhiteSpace}+       { return makeToken(Whitespace.class); }
+    {WhiteSpace}+       { return makeToken(Token.Whitespace.class); }
 
-    {MultiLIneComment}  { return makeToken(MultiLineComment.class); }
-    {SingleLineComment} { return makeToken(SingleLineComment.class); }
+    {MultiLIneComment}  { return makeToken(Token.MultiLineComment.class); }
+    {SingleLineComment} { return makeToken(Token.SingleLineComment.class); }
 
-    {DecNumberLiteral}  { return makeToken(DecNumberLiteral.class); }
-    {HexNumberLiteral}  { return makeToken(HexNumberLiteral.class); }
-    {BinNumberLiteral}  { return makeToken(BinNumberLiteral.class); }
-    {FloatLiteral}      { return makeToken(FloatLiteral.class); }
-    {HexFloatLiteral}   { return makeToken(HexFloatLiteral.class); }
-    {DoubleLiteral}     { return makeToken(DoubleLiteral.class); }
-    {HexDoubleLiteral}  { return makeToken(HexDoubleLiteral.class); }
-    {CharacterLiteral}  { return makeToken(CharLiteral.class); }
-    {StringLiteral}     { return makeToken(StringLiteral.class); }
+    {DecNumberLiteral}  { return makeToken(Token.DecNumber.class); }
+    {HexNumberLiteral}  { return makeToken(Token.HexNumber.class); }
+    {BinNumberLiteral}  { return makeToken(Token.BinNumber.class); }
+    {FloatLiteral}      { return makeToken(Token.Float.class); }
+    {HexFloatLiteral}   { return makeToken(Token.HexFloat.class); }
+    {DoubleLiteral}     { return makeToken(Token.Double.class); }
+    {HexDoubleLiteral}  { return makeToken(Token.HexDouble.class); }
+    {CharacterLiteral}  { return makeToken(Token.Char.class); }
+    {StringLiteral}     { return makeToken(Token.String.class); }
 
     // keywords
-    "val"               { return makeToken(KwVal.class); }
-    "var"               { return makeToken(KwVar.class); }
-    "def"               { return makeToken(KwDef.class); }
-    "class"             { return makeToken(KwClass.class); }
-    "interface"         { return makeToken(KwInterface.class); }
-    "public"            { return makeToken(KwPublic.class); }
-    "private"           { return makeToken(KwPrivate.class); }
-    "final"             { return makeToken(KwFinal.class); }
-    "extends"           { return makeToken(KwExtends.class); }
-    "implements"        { return makeToken(KwImplements.class); }
-    "override"          { return makeToken(KwOverride.class); }
-    "as"                { return makeToken(KwAs.class); }
-    "is"                { return makeToken(KwIs.class); }
-    "this"              { return makeToken(KwThis.class); }
-    "super"             { return makeToken(KwSuper.class); }
+    "val"               { return makeToken(Token.KwVal.class); }
+    "var"               { return makeToken(Token.KwVar.class); }
+    "def"               { return makeToken(Token.KwDef.class); }
+    "class"             { return makeToken(Token.KwClass.class); }
+    "interface"         { return makeToken(Token.KwInterface.class); }
+    "public"            { return makeToken(Token.KwPublic.class); }
+    "private"           { return makeToken(Token.KwPrivate.class); }
+    "final"             { return makeToken(Token.KwFinal.class); }
+    "extends"           { return makeToken(Token.KwExtends.class); }
+    "implements"        { return makeToken(Token.KwImplements.class); }
+    "override"          { return makeToken(Token.KwOverride.class); }
+    "as"                { return makeToken(Token.KwAs.class); }
+    "is"                { return makeToken(Token.KwIs.class); }
+    "this"              { return makeToken(Token.KwThis.class); }
+    "super"             { return makeToken(Token.KwSuper.class); }
 
-    {Identifier}        { return makeToken(IdLiteral.class); }
+    {Identifier}        { return makeToken(Token.Id.class); }
 
     // delimiters
-    ";"                 { return makeToken(Semicolon.class); }
-    ","                 { return makeToken(Comma.class); }
-    "("                 { return makeToken(OpenParen.class); }
-    ")"                 { return makeToken(CloseParen.class); }
-    "{"                 { return makeToken(OpenBrace.class); }
-    "}"                 { return makeToken(CloseBrace.class); }
+    ";"                 { return makeToken(Token.Semicolon.class); }
+    ","                 { return makeToken(Token.Comma.class); }
+    "("                 { return makeToken(Token.OpenParen.class); }
+    ")"                 { return makeToken(Token.CloseParen.class); }
+    "{"                 { return makeToken(Token.OpenBrace.class); }
+    "}"                 { return makeToken(Token.CloseBrace.class); }
 
     // operators
-    "="                 { return makeToken(Assign.class); }
-    "+"                 { return makeToken(Plus.class);}
-    "-"                 { return makeToken(Minus.class); }
-    "*"                 { return makeToken(Asterisk.class); }
-    "/"                 { return makeToken(Div.class); }
+    "="                 { return makeToken(Token.Assign.class); }
+    "+"                 { return makeToken(Token.Plus.class);}
+    "-"                 { return makeToken(Token.Minus.class); }
+    "*"                 { return makeToken(Token.Asterisk.class); }
+    "/"                 { return makeToken(Token.Div.class); }
 
-    .                   { return makeToken(BadCharacter.class); }
+    .                   { return makeToken(Token.BadCharacter.class); }
 }

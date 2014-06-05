@@ -15,155 +15,129 @@ import java.lang.reflect.InvocationTargetException;
 %function nextToken
 
 %eofval{
-    return makeSimpleToken(EofToken.class);
+    return makeToken(Eof.class);
 %eofval}
 
 %{
 
 private int getTokenEndOffset() {
-    return yytext().length() - yychar;
+    return yychar - yytext().length();
 }
 
 private TokenPosition calcTokenPosition(int line, int column) {
     return new TokenPosition(line, column, yychar, getTokenEndOffset(), tokenIndex++);
 }
 
-private <T extends Token> T makeSimpleToken(Class<T> type) {
-    TokenPosition tokenPosition = calcTokenPosition(yyline, yycolumn);
-    return makeToken(type, tokenPosition);
-}
-
-private <T extends Token> T makeExtraToken(Class<T> type) {
-    TokenPosition tokenPosition = calcTokenPosition(extraLine, extraColumn);
-    return makeToken(type, tokenPosition);
-}
-
-private <T extends Token> T makeToken(Class<T> type, TokenPosition position) {
+private <T extends Token> T makeToken(Class<T> type) {
     try {
-        Constructor<T> constructor = type.getDeclaredConstructor(TokenPosition.class);
+        final TokenPosition position = calcTokenPosition(yyline, yycolumn);
+        final Constructor<T> constructor = type.getDeclaredConstructor(TokenPosition.class);
         return constructor.newInstance(position);
     } catch (NoSuchMethodException e) {
         throw new IllegalStateException(e);
-    }
-    catch (InvocationTargetException e) {
+    } catch (InvocationTargetException e) {
         throw new IllegalStateException(e);
-    }
-    catch (InstantiationException e) {
+    } catch (InstantiationException e) {
         throw new IllegalStateException(e);
-    }
-    catch (IllegalAccessException e) {
+    } catch (IllegalAccessException e) {
         throw new IllegalStateException(e);
     }
 }
-
-private void resetAfterState() {
-    if (yystate() == AFTER) {
-        yybegin(YYINITIAL);
-    }
-}
-
-private int extraLine = -1;
-private int extraColumn = -1;
 
 private int tokenIndex = 0;
 
 %}
 
-LineEnding = \r|\n|\r\n
-InputCharacter = [^\r\n]
-WhiteSpace = [ \t\f]
+WhiteSpace = [\ \n\r\t\f]
+SingleLineComment = "//"[^\r\n]*
+MultiLIneComment = ("/*"([^"*"]*("*"+[^"*""/"])?)*("*"+"/")?)|"/*"
 
-SingleLineComment = "//" {InputCharacter}* {LineEnding}
-MultiLIneComment = "/*" [^*] ~"*/" | "/*" "*"+ "/"
-Comment = {SingleLineComment} | {MultiLIneComment}
+Digit = [0-9]
+DigitOrUnderscore = [0-9_]
+Digits = {Digit}|{Digit}{DigitOrUnderscore}*
 
-DecInteger = 0 | [1-9][0-9]*
-HexInteger = "0x" [0-9a-fA-F]+
+HexDigit = [0-9A-Fa-f]
+HexDigitOrUnderscore = [0-9A-Fa-f_]
+HexDigits = {HexDigit}|{HexDigit}{HexDigitOrUnderscore}*
 
-Identifier = [a-zA-Z_$][a-zA-Z_$0-9]*
+BinDigit = [0-1]
+BinDigitOrUnderscore = [0-1_]
+BinDigits = {BinDigit}|{BinDigitOrUnderscore}
 
-%state STRING
-%state ERROR
-%state AFTER
+DecNumberLiteral = {Digits}
+HexNumberLiteral = 0[Xx]{HexDigits}
+BinNumberLiteral = 0[Bb]{BinDigits}
+
+FloatLiteral =  {DecFpNumber} [Ff]
+DoubleLiteral = {DecFpNumber} [Dd]?
+DecFpNumber = {DecSignificand}{DecExponent}?
+DecSignificand = {Digits} | "." {Digits} | {Digits} "." {Digits}
+DecExponent = [Ee][+-]{Digits}
+
+HexFloatLiteral = {HexFpNumber} [Ff]
+HexDoubleLiteral = {HexFpNumber} [Dd]?
+HexFpNumber = 0[Xx]{HexSignificand}{HexExponent}?
+HexSignificand = {HexDigits} | "." {HexDigits} | {HexDigits} "." {HexDigits}
+HexExponent = [Pp][+-]{HexDigits}
+
+CharacterLiteral = "'"{Symbol}*"'"
+StringLiteral = \"{Symbol}*\"
+Symbol = [^\\\'\r\n]|{EscapeSequence}
+EscapeSequence = \\[^\r\n]
+
+Identifier = [a-zA-Z][a-zA-Z_$0-9]*
 
 %%
 
 <YYINITIAL> {
+    {WhiteSpace}+       { return makeToken(Whitespace.class); }
+
+    {MultiLIneComment}  { return makeToken(MultiLineComment.class); }
+    {SingleLineComment} { return makeToken(SingleLineComment.class); }
+
+    {DecNumberLiteral}  { return makeToken(DecNumberLiteral.class); }
+    {HexNumberLiteral}  { return makeToken(HexNumberLiteral.class); }
+    {BinNumberLiteral}  { return makeToken(BinNumberLiteral.class); }
+    {FloatLiteral}      { return makeToken(FloatLiteral.class); }
+    {HexFloatLiteral}   { return makeToken(HexFloatLiteral.class); }
+    {DoubleLiteral}     { return makeToken(DoubleLiteral.class); }
+    {HexDoubleLiteral}  { return makeToken(HexDoubleLiteral.class); }
+    {CharacterLiteral}  { return makeToken(CharLiteral.class); }
+    {StringLiteral}     { return makeToken(StringLiteral.class); }
+
     // keywords
-    "val"        { yybegin(AFTER); return makeSimpleToken(KwValToken.class); }
-    "var"        { yybegin(AFTER); return makeSimpleToken(KwVarToken.class); }
-    "def"        { yybegin(AFTER); return makeSimpleToken(KwDefToken.class); }
-    "class"      { yybegin(AFTER); return makeSimpleToken(KwClassToken.class); }
-    "interface"  { yybegin(AFTER); return makeSimpleToken(KwInterfaceToken.class); }
-    "public"     { yybegin(AFTER); return makeSimpleToken(KwPublicToken.class); }
-    "private"    { yybegin(AFTER); return makeSimpleToken(KwPrivateToken.class); }
-    "final"      { yybegin(AFTER); return makeSimpleToken(KwFinalToken.class); }
-    "extends"    { yybegin(AFTER); return makeSimpleToken(KwExtendsToken.class); }
-    "implements" { yybegin(AFTER); return makeSimpleToken(KwImplementsToken.class); }
-    "override"   { yybegin(AFTER); return makeSimpleToken(KwOverrideToken.class); }
-    "as"         { yybegin(AFTER); return makeSimpleToken(KwAsToken.class); }
-    "is"         { yybegin(AFTER); return makeSimpleToken(KwIsToken.class); }
-    "this"       { yybegin(AFTER); return makeSimpleToken(KwThisToken.class); }
-    "super"      { yybegin(AFTER); return makeSimpleToken(KwSuperToken.class); }
+    "val"               { return makeToken(KwVal.class); }
+    "var"               { return makeToken(KwVar.class); }
+    "def"               { return makeToken(KwDef.class); }
+    "class"             { return makeToken(KwClass.class); }
+    "interface"         { return makeToken(KwInterface.class); }
+    "public"            { return makeToken(KwPublic.class); }
+    "private"           { return makeToken(KwPrivate.class); }
+    "final"             { return makeToken(KwFinal.class); }
+    "extends"           { return makeToken(KwExtends.class); }
+    "implements"        { return makeToken(KwImplements.class); }
+    "override"          { return makeToken(KwOverride.class); }
+    "as"                { return makeToken(KwAs.class); }
+    "is"                { return makeToken(KwIs.class); }
+    "this"              { return makeToken(KwThis.class); }
+    "super"             { return makeToken(KwSuper.class); }
 
-    // string
-    \" { extraLine = yyline;
-         extraColumn = yycolumn;
-         yybegin(STRING); }
+    {Identifier}        { return makeToken(IdLiteral.class); }
 
-    // Identifier
-    {Identifier} { yybegin(AFTER); return makeSimpleToken(IdToken.class); }
-
-    // Integer
-    {DecInteger}|{HexInteger} { yybegin(AFTER); return makeSimpleToken(DecNumberToken.class); }
-}
-
-<YYINITIAL, AFTER> {
-    ";" { resetAfterState(); return makeSimpleToken(SemicolonToken.class); }
-    ":" { resetAfterState(); return makeSimpleToken(ColonToken.class); }
-    "," { resetAfterState(); return makeSimpleToken(CommaToken.class); }
+    // delimiters
+    ";"                 { return makeToken(Semicolon.class); }
+    ","                 { return makeToken(Comma.class); }
+    "("                 { return makeToken(OpenParen.class); }
+    ")"                 { return makeToken(CloseParen.class); }
+    "{"                 { return makeToken(OpenBrace.class); }
+    "}"                 { return makeToken(CloseBrace.class); }
 
     // operators
-    "=" { resetAfterState(); return makeSimpleToken(AssignToken.class); }
-    "+" { resetAfterState(); return makeSimpleToken(PlusToken.class);}
-    "-" { resetAfterState(); return makeSimpleToken(MinusToken.class); }
-    "*" { resetAfterState(); return makeSimpleToken(TimesToken.class); }
-    "/" { resetAfterState(); return makeSimpleToken(DivideToken.class); }
+    "="                 { return makeToken(Assign.class); }
+    "+"                 { return makeToken(Plus.class);}
+    "-"                 { return makeToken(Minus.class); }
+    "*"                 { return makeToken(Asterisk.class); }
+    "/"                 { return makeToken(Div.class); }
 
-    "(" { resetAfterState(); return makeSimpleToken(OpenParenToken.class); }
-    ")" { resetAfterState(); return makeSimpleToken(CloseParenToken.class); }
-    "{" { resetAfterState(); return makeSimpleToken(OpenCurlyBraceToken.class); }
-    "}" { resetAfterState(); return makeSimpleToken(CloseCurlyBraceToken.class); }
-
-    // comments
-    {Comment} { resetAfterState(); return makeSimpleToken(CommentToken.class); }
-
-    // whitespace
-    {WhiteSpace} { resetAfterState(); return makeSimpleToken(WhitespaceToken.class); }
-    {LineEnding} { resetAfterState(); return makeSimpleToken(NewlineToken.class); }
-
-    [^] { extraLine = yyline;
-          extraColumn = yycolumn;
-          yybegin(ERROR); }
-}
-
-<STRING> {
-    \" { yybegin(YYINITIAL);
-         return makeExtraToken(StringToken.class); }
-
-    [^\n\r\"\\]+    {  }
-    \\t             {  }
-    \\n             {  }
-
-    \\r             {  }
-    \\\"            {  }
-    \\              {  }
-
-    //TODO: {LineEnding}    { yybegin(ERROR); }
-}
-
-<ERROR> {
-    {WhiteSpace}|{LineEnding} { yybegin(YYINITIAL);
-                                return makeExtraToken(ErrorToken.class); }
-    [^] {  }
+    .                   { return makeToken(BadCharacter.class); }
 }

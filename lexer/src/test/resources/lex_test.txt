@@ -15,3 +15,6 @@ badId\\
 11oneone;
 
 +-*/=;
+
+// bad
+0zz

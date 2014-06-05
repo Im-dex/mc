@@ -4,43 +4,48 @@ sealed abstract class Token extends Immutable {
     val position: TokenPosition
 }
 
-final case class IdToken(position: TokenPosition) extends Token
-final case class StringToken(position: TokenPosition) extends Token
-final case class DecNumberToken(position: TokenPosition) extends Token
+final case class DecNumberLiteral(position: TokenPosition) extends Token
+final case class HexNumberLiteral(position: TokenPosition) extends Token
+final case class BinNumberLiteral(position: TokenPosition) extends Token
+final case class FloatLiteral(position: TokenPosition) extends Token
+final case class HexFloatLiteral(position: TokenPosition) extends Token
+final case class DoubleLiteral(position: TokenPosition) extends Token
+final case class HexDoubleLiteral(position: TokenPosition) extends Token
+final case class IdLiteral(position: TokenPosition) extends Token
+final case class CharLiteral(position: TokenPosition) extends Token
+final case class StringLiteral(position: TokenPosition) extends Token
 
-final case class WhitespaceToken(position: TokenPosition) extends Token
-final case class NewlineToken(position: TokenPosition) extends Token
-final case class EofToken(position: TokenPosition) extends Token
-final case class CommentToken(position: TokenPosition) extends Token
-final case class ErrorToken(position: TokenPosition) extends Token
+final case class Whitespace(position: TokenPosition) extends Token
+final case class Eof(position: TokenPosition) extends Token
+final case class MultiLineComment(position: TokenPosition) extends Token
+final case class SingleLineComment(position: TokenPosition) extends Token
+final case class BadCharacter(position: TokenPosition) extends Token
 
-final case class KwValToken(position: TokenPosition) extends Token
-final case class KwVarToken(position: TokenPosition) extends Token
-final case class KwDefToken(position: TokenPosition) extends Token
-final case class KwClassToken(position: TokenPosition) extends Token
-final case class KwInterfaceToken(position: TokenPosition) extends Token
-final case class KwPublicToken(position: TokenPosition) extends Token
-final case class KwPrivateToken(position: TokenPosition) extends Token
-final case class KwFinalToken(position: TokenPosition) extends Token
-final case class KwExtendsToken(position: TokenPosition) extends Token
-final case class KwImplementsToken(position: TokenPosition) extends Token
-final case class KwOverrideToken(position: TokenPosition) extends Token
-final case class KwAsToken(position: TokenPosition) extends Token
-final case class KwIsToken(position: TokenPosition) extends Token
-final case class KwThisToken(position: TokenPosition) extends Token
-final case class KwSuperToken(position: TokenPosition) extends Token
+final case class KwVal(position: TokenPosition) extends Token
+final case class KwVar(position: TokenPosition) extends Token
+final case class KwDef(position: TokenPosition) extends Token
+final case class KwClass(position: TokenPosition) extends Token
+final case class KwInterface(position: TokenPosition) extends Token
+final case class KwPublic(position: TokenPosition) extends Token
+final case class KwPrivate(position: TokenPosition) extends Token
+final case class KwFinal(position: TokenPosition) extends Token
+final case class KwExtends(position: TokenPosition) extends Token
+final case class KwImplements(position: TokenPosition) extends Token
+final case class KwOverride(position: TokenPosition) extends Token
+final case class KwAs(position: TokenPosition) extends Token
+final case class KwIs(position: TokenPosition) extends Token
+final case class KwThis(position: TokenPosition) extends Token
+final case class KwSuper(position: TokenPosition) extends Token
 
-final case class SemicolonToken(position: TokenPosition) extends Token
-final case class ColonToken(position: TokenPosition) extends Token
-final case class CommaToken(position: TokenPosition) extends Token
+final case class Semicolon(position: TokenPosition) extends Token
+final case class Comma(position: TokenPosition) extends Token
+final case class OpenParen(position: TokenPosition) extends Token
+final case class CloseParen(position: TokenPosition) extends Token
+final case class OpenBrace(position: TokenPosition) extends Token
+final case class CloseBrace(position: TokenPosition) extends Token
 
-final case class AssignToken(position: TokenPosition) extends Token
-final case class PlusToken(position: TokenPosition) extends Token
-final case class MinusToken(position: TokenPosition) extends Token
-final case class TimesToken(position: TokenPosition) extends Token
-final case class DivideToken(position: TokenPosition) extends Token
-
-final case class OpenParenToken(position: TokenPosition) extends Token
-final case class CloseParenToken(position: TokenPosition) extends Token
-final case class OpenCurlyBraceToken(position: TokenPosition) extends Token
-final case class CloseCurlyBraceToken(position: TokenPosition) extends Token
+final case class Assign(position: TokenPosition) extends Token
+final case class Plus(position: TokenPosition) extends Token
+final case class Minus(position: TokenPosition) extends Token
+final case class Asterisk(position: TokenPosition) extends Token
+final case class Div(position: TokenPosition) extends Token

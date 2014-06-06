@@ -75,33 +75,41 @@ final class McScanner(val reader: InputStreamReader) extends Scanner
 
     @throws(classOf[SkipTokenException])
     private def extractType(token: Token): Short = token match {
-        case Token.Id(_)        => Terminals.ID
-        case Token.String(_)    => Terminals.STRING
-        case Token.DecNumber(_) => Terminals.DEC_NUMBER
+        case _: Token.Id        => Terminals.ID
+        case _: Token.Char      => Terminals.CHAR
+        case _: Token.String    => Terminals.STRING
+        case _: Token.DecNumber => Terminals.DEC_NUMBER
+        case _: Token.HexNumber => Terminals.HEX_NUMBER
+        case _: Token.BinNumber => Terminals.BIN_NUMBER
+        case _: Token.Float     => Terminals.FLOAT_NUMBER
+        case _: Token.HexFloat  => Terminals.HEX_FLOAT_NUMBER
+        case _: Token.Double    => Terminals.DOUBLE_NUMBER
+        case _: Token.HexDouble => Terminals.HEX_DOUBLE_NUMBER
 
-        case Token.Whitespace(_)        => throw SkipTokenException("Whitespace")
-        case Token.Eof(_)               => Terminals.EOF
-        case Token.MultiLineComment(_)  => throw SkipTokenException("Comment")
-        case Token.SingleLineComment(_) => throw SkipTokenException("Comment")
-        case Token.BadCharacter(_)      => throw new Scanner.Exception("error token")
+        case _: Token.Whitespace        => throw SkipTokenException("Whitespace")
+        case _: Token.Eof               => Terminals.EOF
+        case _: Token.MultiLineComment  => throw SkipTokenException("Comment")
+        case _: Token.SingleLineComment => throw SkipTokenException("Comment")
+        case _: Token.BadCharacter      => throw new Scanner.Exception("error token")
 
-        //case KwValToken(_)    => Terminals.VAL
-        //case KwVarToken(_)    => Terminals.VAR
+        //case _: Token.KwVal    => Terminals.VAL
+        //case _: Token.KwVar    => Terminals.VAR
+        //case _: Token.KwDef    => Terminals.DEF
 
-        case Token.Semicolon(_) => Terminals.SEMICOLON
-        //case ColonToken(_)    => Terminals.COLON
+        case _: Token.Semicolon => Terminals.SEMICOLON
+        //case _: ColonToken    => Terminals.COLON
 
-        //case AssignToken(_)  => Terminals.ASSIGN
-        case Token.Plus(_)     => Terminals.PLUS
-        case Token.Minus(_)    => Terminals.MINUS
-        case Token.Asterisk(_) => Terminals.TIMES
-        case Token.Div(_)      => Terminals.DIVIDE
+        //case _: AssignToken  => Terminals.ASSIGN
+        case _: Token.Plus     => Terminals.PLUS
+        case _: Token.Minus    => Terminals.MINUS
+        case _: Token.Asterisk => Terminals.TIMES
+        case _: Token.Div      => Terminals.DIVIDE
 
-        case Token.OpenParen(_)        => Terminals.OPEN_PAREN
-        case Token.CloseParen(_)       => Terminals.CLOSE_PAREN
-        //case OpenCurlyBraceToken(_)  => Terminals.OPEN_CURLY_BRACE
-        //case CloseCurlyBraceToken(_) => Terminals.CLOSE_CURLY_BRACE
+        case _: Token.OpenParen        => Terminals.OPEN_PAREN
+        case _: Token.CloseParen       => Terminals.CLOSE_PAREN
+        //case _: OpenCurlyBraceToken  => Terminals.OPEN_CURLY_BRACE
+        //case _: CloseCurlyBraceToken => Terminals.CLOSE_CURLY_BRACE
 
-        case _ => throw new IllegalArgumentException("Unknown token")
+        case _ => throw new IllegalArgumentException("Unknown token: " + token)
     }
 }

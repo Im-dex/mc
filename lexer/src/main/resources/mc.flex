@@ -62,7 +62,7 @@ HexDigits = {HexDigit}|{HexDigit}{HexDigitOrUnderscore}*
 
 BinDigit = [0-1]
 BinDigitOrUnderscore = [0-1_]
-BinDigits = {BinDigit}|{BinDigitOrUnderscore}
+BinDigits = {BinDigit}|{BinDigitOrUnderscore}*
 
 DecNumberLiteral = {Digits}
 HexNumberLiteral = 0[Xx]{HexDigits}

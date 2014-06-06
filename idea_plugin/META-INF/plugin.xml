@@ -26,7 +26,7 @@
   <extensions defaultExtensionNs="com.intellij">
     <!-- Add your extensions here -->
     <fileTypeFactory implementation="org.mc.idea_plugin.McTypeFactory"/>
-    <!--<lang.parserDefinition language="mc" implementationClass="org.mc.idea_plugin.McParserDefinition"/>-->
+    <lang.parserDefinition language="mc" implementationClass="org.mc.idea_plugin.McParserDefinition"/>
     <lang.syntaxHighlighterFactory key="mc" implementationClass="org.mc.idea_plugin.highlighting.McSyntaxHighlighterFactory"/>
   </extensions>
 

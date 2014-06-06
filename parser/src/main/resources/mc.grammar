@@ -3,6 +3,18 @@
 %import "org.mc.parser.*";
 %class "McParser";
 
+%embed {:
+    private ParseInfoManager parseInfoManager = new ParseInfoManager();
+
+    public ArrayList<TokenPosition> getRemovedOnRepairTokensInfo() {
+        return parseInfoManager.getRemovedOnRepairTokensInfo();
+    }
+:};
+
+%init {:
+    report = parseInfoManager;
+:};
+
 %terminals ID, CHAR, STRING, DEC_NUMBER, HEX_NUMBER, BIN_NUMBER, FLOAT_NUMBER, HEX_FLOAT_NUMBER, DOUBLE_NUMBER, HEX_DOUBLE_NUMBER;
 %terminals OPEN_PAREN, CLOSE_PAREN;
 %terminals SEMICOLON, COMMA, ASSIGN, PLUS, MINUS, TIMES, DIVIDE;

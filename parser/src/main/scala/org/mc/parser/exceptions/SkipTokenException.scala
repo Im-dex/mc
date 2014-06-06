@@ -1,4 +1,4 @@
-package org.mc.parser.error
+package org.mc.parser.exceptions
 
 object SkipTokenException {
     def apply(message: String) = {

@@ -5,17 +5,6 @@ import java.io.InputStreamReader
 import org.mc.parser.error.SkipTokenException
 import beaver.Scanner
 import beaver.Symbol
-import scala.Some
-import scala.Some
-import scala.Some
-import scala.Some
-import scala.Some
-import scala.Some
-import scala.Some
-import scala.Some
-import scala.Some
-import scala.Some
-import scala.Some
 import org.mc.lexer.TokenPosition
 import scala.Some
 
@@ -99,7 +88,7 @@ final class McScanner(val reader: InputStreamReader) extends Scanner
         case _: Token.Semicolon => Terminals.SEMICOLON
         //case _: ColonToken    => Terminals.COLON
 
-        //case _: AssignToken  => Terminals.ASSIGN
+        //case _: Token.Assign   => Terminals.ASSIGN
         case _: Token.Plus     => Terminals.PLUS
         case _: Token.Minus    => Terminals.MINUS
         case _: Token.Asterisk => Terminals.TIMES

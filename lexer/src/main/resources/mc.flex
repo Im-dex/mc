@@ -21,7 +21,7 @@ import java.lang.reflect.InvocationTargetException;
 %{
 
 private int getTokenEndOffset() {
-    return yychar - yytext().length();
+    return yychar + yytext().length();
 }
 
 private TokenPosition calcTokenPosition(int line, int column) {

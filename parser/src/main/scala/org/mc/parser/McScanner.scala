@@ -2,7 +2,7 @@ package org.mc.parser
 
 import org.mc.lexer._
 import java.io.InputStreamReader
-import org.mc.parser.error.SkipTokenException
+import org.mc.parser.exceptions.SkipTokenException
 import beaver.Scanner
 import beaver.Symbol
 import org.mc.lexer.TokenPosition

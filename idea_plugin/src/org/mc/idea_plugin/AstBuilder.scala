@@ -5,62 +5,74 @@ import com.intellij.lang.{ASTNode, PsiBuilder}
 import org.mc.idea_plugin.psi.McTypes
 import com.intellij.psi.tree.IElementType
 
-object AstBuilder {
-    def build(ast: Ast, builder: PsiBuilder): ASTNode = {
-        buildImpl(ast, builder)
+final class AstBuilder(parserListener: McIdeaParserListener, builder: PsiBuilder) {
+
+    def build(ast: Ast): ASTNode = {
+        buildImpl(ast)
         builder.getTreeBuilt
     }
 
-    private def buildImpl(ast: Ast, builder: PsiBuilder): Unit = {
+    private def buildImpl(ast: Ast): Unit = {
         ast match {
             case Ast.ExpressionList(expressions) =>
                 val mark = builder.mark()
-                expressions.foreach(buildImpl(_, builder))
+                expressions.foreach(buildImpl(_))
                 mark.done(McTypes.EXPRESSION_LIST)
             case expr: Ast.Expression =>
-                buildExpression(expr, builder)
-                skipToken(builder, McIdeaLexer.SEMICOLON)
+                buildExpression(expr)
+                skipToken(McIdeaLexer.SEMICOLON)
         }
     }
 
     // skip current token if its type equals tokenType
-    private def skipToken(builder: PsiBuilder, tokenType: IElementType): Unit = {
+    private def skipToken(tokenType: IElementType): Unit = {
         if (builder.getTokenType == tokenType)
-            builder.advanceLexer()
+            advanceLexer()
     }
 
-    private def buildExpression(expression: Ast.Expression, builder: PsiBuilder): Unit = expression match {
+    private def advanceLexer(): Unit = {
+        builder.advanceLexer()
+
+        if (parserListener.isErrorToken(builder.rawTokenIndex())) {
+            val mark = builder.mark()
+            builder.error("Unexpected token")
+            builder.advanceLexer()
+            mark.done(McTypes.ERROR_EXPRESSION)
+        }
+    }
+
+    private def buildExpression(expression: Ast.Expression): Unit = expression match {
         case Ast.ParenthesizedExpression(expr) =>
             val marker = builder.mark()
-            skipToken(builder, McIdeaLexer.OPEN_PAREN)
-            buildImpl(expr, builder)
-            skipToken(builder, McIdeaLexer.CLOSE_PAREN)
+            skipToken(McIdeaLexer.OPEN_PAREN)
+            buildImpl(expr)
+            skipToken(McIdeaLexer.CLOSE_PAREN)
             marker.done(McTypes.PARENTHESIZED_EXPR)
         case Ast.ErrorExpression(beforeTokenIndex) =>
             val marker = builder.mark()
             // TODO: builder.error()*/
             while (builder.rawTokenIndex() != beforeTokenIndex) {
-                builder.advanceLexer()
+                advanceLexer()
             }
             marker.done(McTypes.ERROR_EXPRESSION)
         case expr: Ast.BinaryExpression =>
             val marker = builder.mark()
-            buildImpl(expr.left, builder)
-            builder.advanceLexer() // op token
-            buildImpl(expr.right, builder)
+            buildImpl(expr.left)
+            advanceLexer() // op token
+            buildImpl(expr.right)
             marker.done(getBinaryExpressionType(expr))
         case expr: Ast.UnaryExpression =>
             val marker = builder.mark()
-            builder.advanceLexer() // op token
-            buildImpl(expr.expression, builder)
+            advanceLexer() // op token
+            buildImpl(expr.expression)
             marker.done(getUnaryExpressionType(expr))
         case expr: Ast.EmptyExpression =>
             val marker = builder.mark()
-            builder.advanceLexer()
+            advanceLexer()
             marker.done(McTypes.EMPTY_EXPR)
         case literal: Ast.Literal =>
             val marker = builder.mark()
-            builder.advanceLexer()
+            advanceLexer()
             marker.done(getLiteralType(literal))
     }
 

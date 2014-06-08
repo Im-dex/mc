@@ -30,7 +30,9 @@ public class McIdeaParser implements PsiParser {
         try {
             final Object astObject = parser.parse(scanner);
             final Ast ast = (Ast)astObject;
-            return AstBuilder.build(ast, builder);
+
+            final AstBuilder astBuilder = new AstBuilder(listener, builder);
+            return astBuilder.build(ast);
         } catch (IOException e) {
             throw new IllegalStateException(e);
         } catch (Parser.Exception e) {

@@ -46,7 +46,7 @@ ast
 expr
     = sub_expr.e SEMICOLON {: return e; :}
     | SEMICOLON            {: return new Ast.EmptyExpression(); :}
-    | error SEMICOLON.semi {: return new Ast.ErrorExpression(((TokenPosition)semi.value).index()); :}
+    | error SEMICOLON      {: return new Ast.ErrorExpression(); :}
     ;
 
 sub_expr

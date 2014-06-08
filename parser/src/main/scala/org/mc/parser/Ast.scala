@@ -23,7 +23,7 @@ object Ast {
 
     final case class ExpressionList(expressions: List[Expression]) extends Ast with Immutable
     final case class EmptyExpression() extends Expression with Immutable
-    final case class ErrorExpression(beforeTokenIndex: Int) extends Expression with Immutable
+    final case class ErrorExpression() extends Expression with Immutable
     final case class ParenthesizedExpression(expression: Expression) extends Expression with Immutable
 
     final case class AddExpression(left: Expression, right: Expression) extends BinaryExpression with Immutable

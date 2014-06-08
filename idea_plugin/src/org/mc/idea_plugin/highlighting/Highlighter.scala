@@ -10,23 +10,23 @@ import org.mc.idea_plugin.McIdeaLexer
 import com.intellij.psi.TokenType
 
 object Highlighter {
-    private val MULTI_LINE_COMMENT = createTextAttributesKey("MC_MULTI_LINE_COMMENT", DefaultLanguageHighlighterColors.BLOCK_COMMENT)
-    private val SINGLE_LINE_COMMENT = createTextAttributesKey("MC_SINGLE_LINE_COMMENT", DefaultLanguageHighlighterColors.LINE_COMMENT)
-    private val NUMBER = createTextAttributesKey("MC_NUMBER", DefaultLanguageHighlighterColors.NUMBER)
-    private val STRING = createTextAttributesKey("MC_CHAR", DefaultLanguageHighlighterColors.STRING)
-    private val OPERATOR = createTextAttributesKey("MC_OPERATOR", DefaultLanguageHighlighterColors.OPERATION_SIGN)
-    private val SEMICOLON = createTextAttributesKey("MC_SEMICOLON", DefaultLanguageHighlighterColors.SEMICOLON)
-    private val ERROR = createTextAttributesKey("MC_ERROR", new TextAttributes(Color.RED, null, null, null, Font.BOLD))
-    private val KEYWORD = createTextAttributesKey("MC_KEYWORD", DefaultLanguageHighlighterColors.KEYWORD)
+    val MULTI_LINE_COMMENT = createTextAttributesKey("MC_MULTI_LINE_COMMENT", DefaultLanguageHighlighterColors.BLOCK_COMMENT)
+    val SINGLE_LINE_COMMENT = createTextAttributesKey("MC_SINGLE_LINE_COMMENT", DefaultLanguageHighlighterColors.LINE_COMMENT)
+    val NUMBER = createTextAttributesKey("MC_NUMBER", DefaultLanguageHighlighterColors.NUMBER)
+    val STRING = createTextAttributesKey("MC_STRING", DefaultLanguageHighlighterColors.STRING)
+    val OPERATOR = createTextAttributesKey("MC_OPERATOR", DefaultLanguageHighlighterColors.OPERATION_SIGN)
+    val SEMICOLON = createTextAttributesKey("MC_SEMICOLON", DefaultLanguageHighlighterColors.SEMICOLON)
+    val ERROR = createTextAttributesKey("MC_ERROR", new TextAttributes(Color.RED, null, null, null, Font.BOLD))
+    val KEYWORD = createTextAttributesKey("MC_KEYWORD", DefaultLanguageHighlighterColors.KEYWORD)
 
-    private val COMMENT_KEYS = Array(MULTI_LINE_COMMENT, SINGLE_LINE_COMMENT)
-    private val NUMBER_KEYS = Array(NUMBER)
-    private val STRING_KEYS = Array(STRING)
-    private val OPERATOR_KEYS = Array(OPERATOR)
-    private val SEMICOLON_KEYS = Array(SEMICOLON)
-    private val ERROR_KEYS = Array(ERROR)
-    private val KEYWORD_KEYS = Array(KEYWORD)
-    private val EMPTY_KEYS: Array[TextAttributesKey] = Array()
+    val COMMENT_KEYS = Array(MULTI_LINE_COMMENT, SINGLE_LINE_COMMENT)
+    val NUMBER_KEYS = Array(NUMBER)
+    val STRING_KEYS = Array(STRING)
+    val OPERATOR_KEYS = Array(OPERATOR)
+    val SEMICOLON_KEYS = Array(SEMICOLON)
+    val ERROR_KEYS = Array(ERROR)
+    val KEYWORD_KEYS = Array(KEYWORD)
+    val EMPTY_KEYS: Array[TextAttributesKey] = Array()
 
     def getTokenHighlights(tokenType: IElementType): Array[TextAttributesKey] = {
         tokenType match {

@@ -5,7 +5,7 @@ import com.intellij.lang.{ASTNode, PsiBuilder}
 import org.mc.idea_plugin.psi.McTypes
 import com.intellij.psi.tree.IElementType
 
-final class AstBuilder(parserListener: McIdeaParserListener, builder: PsiBuilder) {
+final class AstBuilder(parserListener:  McIdeaParserListener, builder: PsiBuilder) {
 
     def build(ast: Ast): ASTNode = {
         buildImpl(ast)
@@ -30,17 +30,6 @@ final class AstBuilder(parserListener: McIdeaParserListener, builder: PsiBuilder
             advanceLexer()
     }
 
-    private def advanceLexer(): Unit = {
-        builder.advanceLexer()
-
-        if (parserListener.isErrorToken(builder.rawTokenIndex())) {
-            val mark = builder.mark()
-            builder.error("Unexpected token")
-            builder.advanceLexer()
-            mark.done(McTypes.ERROR_EXPRESSION)
-        }
-    }
-
     private def buildExpression(expression: Ast.Expression): Unit = expression match {
         case Ast.ParenthesizedExpression(expr) =>
             val marker = builder.mark()
@@ -48,12 +37,10 @@ final class AstBuilder(parserListener: McIdeaParserListener, builder: PsiBuilder
             buildImpl(expr)
             skipToken(McIdeaLexer.CLOSE_PAREN)
             marker.done(McTypes.PARENTHESIZED_EXPR)
-        case Ast.ErrorExpression(beforeTokenIndex) =>
+        case Ast.ErrorExpression() =>
             val marker = builder.mark()
             // TODO: builder.error()*/
-            while (builder.rawTokenIndex() != beforeTokenIndex) {
-                advanceLexer()
-            }
+            processErrorExpression()
             marker.done(McTypes.ERROR_EXPRESSION)
         case expr: Ast.BinaryExpression =>
             val marker = builder.mark()
@@ -74,6 +61,31 @@ final class AstBuilder(parserListener: McIdeaParserListener, builder: PsiBuilder
             val marker = builder.mark()
             advanceLexer()
             marker.done(getLiteralType(literal))
+    }
+
+    private def advanceLexer(): Unit = {
+        builder.advanceLexer()
+
+        if (parserListener.isErrorToken(getTokenIndex)) {
+            val mark = builder.mark()
+            builder.advanceLexer()
+            //builder.error("Unexpected token")
+            mark.done(McTypes.ERROR_EXPRESSION)
+        }
+    }
+
+    private def getTokenIndex: Int = {
+        builder.getTokenType // IDEA workaround for correct index
+        builder.rawTokenIndex()
+    }
+
+    private def processErrorExpression(): Unit = {
+        advanceLexer()
+
+        builder.getTokenType match {
+            case McIdeaLexer.SEMICOLON | null => ()
+            case _ => processErrorExpression()
+        }
     }
 
     private def getBinaryExpressionType(expression: Ast.BinaryExpression): IElementType = expression match {

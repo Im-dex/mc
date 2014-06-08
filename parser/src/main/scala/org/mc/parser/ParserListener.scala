@@ -3,24 +3,24 @@ package org.mc.parser
 import beaver.Parser.Events
 import beaver.Symbol
 import beaver.Scanner.Exception
-import org.mc.lexer.Token
+import org.mc.lexer.TokenPosition
 
 trait ParserListener extends Events {
 
-    def onSyntaxError(unexpectedToken: Token): Unit
+    def onSyntaxError(unexpectedTokenPosition: TokenPosition): Unit
 
-    def onTokenRemovedOnErrorRecovery(removedToken: Token): Unit
+    def onTokenRemovedOnErrorRecovery(removedTokenPosition: TokenPosition): Unit
 
     override final def scannerError(e: Exception): Unit = super.scannerError(e)
 
     override final def syntaxError(token: Symbol): Unit = {
-        val mcToken = token.value.asInstanceOf[Token]
-        onSyntaxError(mcToken)
+        val mcTokenPosition = token.value.asInstanceOf[TokenPosition]
+        onSyntaxError(mcTokenPosition)
     }
 
     override final def unexpectedTokenRemoved(token: Symbol): Unit = {
-        val mcToken = token.value.asInstanceOf[Token]
-        onTokenRemovedOnErrorRecovery(mcToken)
+        val mcTokenPosition = token.value.asInstanceOf[TokenPosition]
+        onTokenRemovedOnErrorRecovery(mcTokenPosition)
     }
 
     // must not work

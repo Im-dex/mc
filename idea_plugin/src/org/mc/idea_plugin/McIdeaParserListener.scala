@@ -6,12 +6,14 @@ import scala.collection.mutable
 
 class McIdeaParserListener extends ParserListener {
 
-    private val removedTokensSet = mutable.Set[TokenPosition]()
+    private val removedTokensIndicesSet = mutable.Set[Int]()
+
+    def isErrorToken(tokenIndex: Int) : Boolean = removedTokensIndicesSet.contains(tokenIndex)
 
     override def onSyntaxError(unexpectedToken: Token): Unit = {
     }
 
     def onTokenRemovedOnErrorRecovery(removedToken: Token): Unit = {
-        removedTokensSet.add(removedToken.position)
+        removedTokensIndicesSet.add(removedToken.position.index)
     }
 }

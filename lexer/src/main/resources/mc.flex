@@ -24,22 +24,13 @@ private int getTokenEndOffset() {
     return yychar + yytext().length();
 }
 
-private TokenPosition calcTokenPosition(int line, int column, int index) {
-    return new TokenPosition(line, column, yychar, getTokenEndOffset(), index);
-}
-
-private <T extends Token> T makeIndexlessToken(Class<T> type) {
-    final TokenPosition position = calcTokenPosition(yyline, yycolumn, 0);
-    return makeToken(type, position);
+private TokenPosition calcTokenPosition(int line, int column) {
+    return new TokenPosition(line, column, yychar, getTokenEndOffset(), tokenIndex++);
 }
 
 private <T extends Token> T makeToken(Class<T> type) {
-    final TokenPosition position = calcTokenPosition(yyline, yycolumn, tokenIndex++);
-    return makeToken(type, position);
-}
-
-private <T extends Token> T makeToken(Class<T> type, TokenPosition position) {
     try {
+        final TokenPosition position = calcTokenPosition(yyline, yycolumn);
         final Constructor<T> constructor = type.getDeclaredConstructor(TokenPosition.class);
         return constructor.newInstance(position);
     } catch (NoSuchMethodException e) {
@@ -99,10 +90,10 @@ Identifier = [a-zA-Z][a-zA-Z_$0-9]*
 %%
 
 <YYINITIAL> {
-    {WhiteSpace}+       { return makeIndexlessToken(Token.Whitespace.class); }
+    {WhiteSpace}+       { return makeToken(Token.Whitespace.class); }
 
-    {MultiLIneComment}  { return makeIndexlessToken(Token.MultiLineComment.class); }
-    {SingleLineComment} { return makeIndexlessToken(Token.SingleLineComment.class); }
+    {MultiLIneComment}  { return makeToken(Token.MultiLineComment.class); }
+    {SingleLineComment} { return makeToken(Token.SingleLineComment.class); }
 
     {DecNumberLiteral}  { return makeToken(Token.DecNumber.class); }
     {HexNumberLiteral}  { return makeToken(Token.HexNumber.class); }

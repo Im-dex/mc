@@ -25,7 +25,8 @@ public class McIdeaParser implements PsiParser {
         final InputStreamReader reader = new InputStreamReader(new ByteArrayInputStream(textData.getBytes()));
         final McScanner scanner = new McScanner(reader);
 
-        final McParser parser = new McParser();
+        final McIdeaParserListener listener = new McIdeaParserListener();
+        final McParser parser = new McParser(listener);
         try {
             final Object astObject = parser.parse(scanner);
             final Ast ast = (Ast)astObject;

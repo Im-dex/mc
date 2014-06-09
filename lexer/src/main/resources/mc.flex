@@ -113,6 +113,7 @@ Identifier = [a-zA-Z][a-zA-Z_$0-9]*
     "interface"         { return makeToken(Token.KwInterface.class); }
     "public"            { return makeToken(Token.KwPublic.class); }
     "private"           { return makeToken(Token.KwPrivate.class); }
+    "protected"         { return makeToken(Token.KwProtected.class); }
     "final"             { return makeToken(Token.KwFinal.class); }
     "extends"           { return makeToken(Token.KwExtends.class); }
     "implements"        { return makeToken(Token.KwImplements.class); }

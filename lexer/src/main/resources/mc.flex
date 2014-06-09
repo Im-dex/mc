@@ -121,11 +121,14 @@ Identifier = [a-zA-Z][a-zA-Z_$0-9]*
     "is"                { return makeToken(Token.KwIs.class); }
     "this"              { return makeToken(Token.KwThis.class); }
     "super"             { return makeToken(Token.KwSuper.class); }
+    "module"            { return makeToken(Token.KwModule.class); }
+    "import"            { return makeToken(Token.KwImport.class); }
 
     {Identifier}        { return makeToken(Token.Id.class); }
 
     // delimiters
     ";"                 { return makeToken(Token.Semicolon.class); }
+    "."                 { return makeToken(Token.Dot.class); }
     ","                 { return makeToken(Token.Comma.class); }
     "("                 { return makeToken(Token.OpenParen.class); }
     ")"                 { return makeToken(Token.CloseParen.class); }

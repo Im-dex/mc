@@ -25,6 +25,7 @@ object Token {
     final case class KwInterface(position: TokenPosition) extends Token
     final case class KwPublic(position: TokenPosition) extends Token
     final case class KwPrivate(position: TokenPosition) extends Token
+    final case class KwProtected(position: TokenPosition) extends Token
     final case class KwFinal(position: TokenPosition) extends Token
     final case class KwExtends(position: TokenPosition) extends Token
     final case class KwImplements(position: TokenPosition) extends Token

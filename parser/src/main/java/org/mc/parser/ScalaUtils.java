@@ -4,6 +4,8 @@ import scala.collection.immutable.List;
 import scala.collection.immutable.List$;
 import scala.collection.immutable.$colon$colon;
 
+import java.util.ArrayList;
+
 class ScalaUtils {
 
     public static <T> scala.Option<T> makeSome(T value) {
@@ -23,7 +25,7 @@ class ScalaUtils {
         return put(list, value);
     }
 
-    public static <T> List<T> makeList(T[] array) {
+    public static <T> List<T> asList(T[] array) {
         return JavaUtils$.MODULE$.asList(array);
     }
 

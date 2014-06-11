@@ -1,19 +1,43 @@
 %package "org.mc.parser";
+
 %import "org.mc.lexer.*";
 %import "org.mc.parser.*";
+%import "java.io.IOException";
+%import "scala.collection.immutable.List";
+%import "scala.Option";
+
 %class "McParser";
 
 %embed {:
+    private String source = null;
+
     public McParser(ParserListener parserListener) {
         this();
         report = (Events)parserListener;
     }
+
+    public Object parse(beaver.Scanner scanner, String source) throws IOException, beaver.Parser.Exception {
+        this.source = source;
+        return super.parse(scanner);
+    }
+
+    private String getTokenText(TokenPosition position) {
+        return source.substring(position.beginOffset(), position.endOffset());
+    }
+
+    private String getTokenText(beaver.Symbol symbol) {
+        return getTokenText(getTokenPosition(symbol));
+    }
+
+    private TokenPosition getTokenPosition(beaver.Symbol symbol) {
+        return ((Token)symbol.value).position();
+    }
 :};
 
 %terminals ID, CHAR, STRING, DEC_NUMBER, HEX_NUMBER, BIN_NUMBER, FLOAT_NUMBER, HEX_FLOAT_NUMBER, DOUBLE_NUMBER, HEX_DOUBLE_NUMBER;
-%terminals OPEN_PAREN, CLOSE_PAREN;
-%terminals SEMICOLON, COMMA, ASSIGN, PLUS, MINUS, TIMES, DIVIDE;
-%terminals VAR, VAL, DEF, CLASS, INTERFACE, PUBLIC, PRIVATE, FINAL, EXTENDS, IMPLEMENTS, OVERRIDE, AS, IS, THIS, SUPER;
+%terminals OPEN_PAREN, CLOSE_PAREN, OPEN_BRACE, CLOSE_BRACE, NEWLINE;
+%terminals DOT, COMMA, ASSIGN, PLUS, MINUS, TIMES, DIVIDE;
+%terminals VAR, VAL, DEF, CLASS, INTERFACE, PRIVATE, PROTECTED, FINAL, EXTENDS, IMPLEMENTS, OVERRIDE, AS, IS, THIS, SUPER, MODULE, IMPORT;
 
 %left OPEN_PAREN, CLOSE_PAREN;
 %right UNARY_MINUS, UNARY_PLUS;
@@ -32,16 +56,34 @@
 %typeof DOUBLE_NUMBER = "Ast.DoubleLiteral";
 %typeof HEX_DOUBLE_NUMBER = "Ast.HexDoubleLiteral";
 
-%typeof ast = "Ast";
+%typeof compilation_module = "Ast.Module";
+
 %typeof expr = "Ast.Expression";
 %typeof sub_expr = "Ast.Expression";
 %typeof const_literal = "Ast.Literal";
 
-%goal ast;
+%typeof statement = "Ast.Statement";
+%typeof modifier = "Ast.Modifier";
+%typeof module_statement = "Ast.ModuleStatement";
+%typeof import_statement = "Ast.ImportStatement";
+%typeof type_declaration = "Ast.TypeDeclaration";
+%typeof class_declaration = "Ast.ClassDeclaration";
+%typeof base_class = "String";
+%typeof interfaces = "List<String>";
+%typeof interfaces_types_list = "List<String>";
+%typeof class_body = "Object"; // TODO:
 
-ast
-    = expr.e* {: return new Ast.ExpressionList(ScalaUtils.makeList(e)); :}
+%typeof name = "List<String>";
+%typeof simple_name = "String";
+%typeof qualified_name = "List<String>";
+
+%goal compilation_module;
+
+compilation_module
+    = statement.statements* {: return new Ast.Module(ScalaUtils.asList(statements)); :}
     ;
+
+//= expr.e* {: return new Ast.ExpressionList(ScalaUtils.makeList(e)); :}
 
 expr
     = sub_expr.e SEMICOLON {: return e; :}
@@ -57,18 +99,83 @@ sub_expr
     | MINUS sub_expr.e @ UNARY_MINUS      {: return new Ast.MinusExpression(e); :}
     | PLUS sub_expr.e @ UNARY_PLUS        {: return new Ast.PlusExpression(e); :}
     | OPEN_PAREN sub_expr.e CLOSE_PAREN   {: return new Ast.ParenthesizedExpression(e); :}
-    | ID                                  {: return new Ast.IdLiteral(); :}
+    | ID.value                            {: return new Ast.IdLiteral(getTokenText(value)); :}
     | const_literal.literal               {: return literal; :}
     ;
 
 const_literal
-    = STRING            {: return new Ast.StringLiteral(); :}
-    | CHAR              {: return new Ast.CharLiteral(); :}
-    | DEC_NUMBER        {: return new Ast.DecNumberLiteral(); :}
-    | HEX_NUMBER        {: return new Ast.HexNumberLiteral(); :}
-    | BIN_NUMBER        {: return new Ast.BinNumberLiteral(); :}
-    | FLOAT_NUMBER      {: return new Ast.FloatLiteral(); :}
-    | HEX_FLOAT_NUMBER  {: return new Ast.HexFloatLiteral(); :}
-    | DOUBLE_NUMBER     {: return new Ast.DoubleLiteral(); :}
-    | HEX_DOUBLE_NUMBER {: return new Ast.HexDoubleLiteral(); :}
+    = STRING.value            {: return new Ast.StringLiteral(getTokenText(value)); :}
+    | CHAR.value              {: return new Ast.CharLiteral(getTokenText(value)); :}
+    | DEC_NUMBER.value        {: return new Ast.DecNumberLiteral(getTokenText(value)); :}
+    | HEX_NUMBER.value        {: return new Ast.HexNumberLiteral(getTokenText(value)); :}
+    | BIN_NUMBER.value        {: return new Ast.BinNumberLiteral(getTokenText(value)); :}
+    | FLOAT_NUMBER.value      {: return new Ast.FloatLiteral(getTokenText(value)); :}
+    | HEX_FLOAT_NUMBER.value  {: return new Ast.HexFloatLiteral(getTokenText(value)); :}
+    | DOUBLE_NUMBER.value     {: return new Ast.DoubleLiteral(getTokenText(value)); :}
+    | HEX_DOUBLE_NUMBER.value {: return new Ast.HexDoubleLiteral(getTokenText(value)); :}
+    ;
+
+statement
+    = module_statement.stmt {: return stmt; :}
+    | import_statement.stmt {: return stmt; :}
+    | type_declaration.stmt {: return stmt; :}
+    | error NEWLINE         {: return new Ast.ErrorStatement(); :}
+    | NEWLINE               {:  :}
+    ;
+
+modifier
+    = PRIVATE   {: return new Ast.Private(); :}
+    | PROTECTED {: return new Ast.Protected(); :}
+    | FINAL     {: return new Ast.Final(); :}
+    ;
+
+module_statement
+    = MODULE name NEWLINE {: return new Ast.ModuleStatement(); :}
+    ;
+
+import_statement
+    = IMPORT name NEWLINE {: return new Ast.ImportStatement(); :}
+    ;
+
+type_declaration
+    = class_declaration.declaration {: return declaration; :}
+    ;
+
+class_declaration
+    = modifier.modifiers* CLASS ID.name base_class.base? interfaces.interfaces? class_body.body
+      {:
+        Option<String> baseClass = base == null ? ScalaUtils.<String>makeNone() : ScalaUtils.makeSome(base);
+        List<String> interfacesList = interfaces == null ? ScalaUtils.<String>makeList() : interfaces;
+        return new Ast.ClassDeclaration(name.text(), ScalaUtils.asList(modifiers), baseClass, interfacesList);
+      :}
+    ;
+
+base_class
+    = EXTENDS ID.name {: return name.text(); :}
+    ;
+
+interfaces
+    = IMPLEMENTS interfaces_types_list.list {: return list; :}
+    ;
+
+interfaces_types_list
+    = ID.name                                  {: return ScalaUtils.<Ast.IdLiteral>makeList(name.text()); :}
+    | interfaces_types_list.list COMMA ID.name {: return ScalaUtils.put(list, name.text()); :}
+    ;
+
+class_body
+    = OPEN_BRACE expr* CLOSE_BRACE {: return null; :}
+    ;
+
+name
+    = simple_name.name    {: return ScalaUtils.makeList(name); :}
+    | qualified_name.name {: return name; :}
+    ;
+
+simple_name
+    = ID.name {: return name.text(); :}
+    ;
+
+qualified_name
+    = name.list DOT ID.name {: return ScalaUtils.put(list, name.text()); :}
     ;

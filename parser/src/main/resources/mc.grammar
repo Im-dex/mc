@@ -9,6 +9,26 @@
 %class "McParser";
 
 %embed {:
+    private static final class PackedType<T> extends beaver.Symbol {
+        public final T value;
+
+        public PackedType(T value) {
+            this.value = value;
+        }
+    }
+
+    private static <T> PackedType<T> pack(T value) {
+        return new PackedType<T>(value);
+    }
+
+    private static <T> T unpack(PackedType<T> value) {
+        return value.value;
+    }
+
+    private static <T> T unpack(beaver.Symbol symbol) {
+        return ((PackedType<T>)symbol.value).value;
+    }
+
     private String source = null;
 
     public McParser(ParserListener parserListener) {
@@ -35,8 +55,8 @@
 :};
 
 %terminals ID, CHAR, STRING, DEC_NUMBER, HEX_NUMBER, BIN_NUMBER, FLOAT_NUMBER, HEX_FLOAT_NUMBER, DOUBLE_NUMBER, HEX_DOUBLE_NUMBER;
-%terminals OPEN_PAREN, CLOSE_PAREN, OPEN_BRACE, CLOSE_BRACE, NEWLINE;
-%terminals DOT, COMMA, ASSIGN, PLUS, MINUS, TIMES, DIVIDE;
+%terminals OPEN_PAREN, CLOSE_PAREN, OPEN_BRACE, CLOSE_BRACE;
+%terminals DOT, SEMICOLON, COMMA, ASSIGN, PLUS, MINUS, TIMES, DIVIDE;
 %terminals VAR, VAL, DEF, CLASS, INTERFACE, PRIVATE, PROTECTED, FINAL, EXTENDS, IMPLEMENTS, OVERRIDE, AS, IS, THIS, SUPER, MODULE, IMPORT;
 
 %left OPEN_PAREN, CLOSE_PAREN;
@@ -68,14 +88,14 @@
 %typeof import_statement = "Ast.ImportStatement";
 %typeof type_declaration = "Ast.TypeDeclaration";
 %typeof class_declaration = "Ast.ClassDeclaration";
-%typeof base_class = "String";
-%typeof interfaces = "List<String>";
-%typeof interfaces_types_list = "List<String>";
+%typeof base_class = "PackedType<String>";
+%typeof interfaces = "PackedType<List<String>>";
+%typeof interfaces_types_list = "PackedType<List<String>>";
 %typeof class_body = "Object"; // TODO:
 
-%typeof name = "List<String>";
-%typeof simple_name = "String";
-%typeof qualified_name = "List<String>";
+%typeof name = "PackedType<String>";
+%typeof simple_name = "PackedType<String>";
+%typeof qualified_name = "PackedType<String>";
 
 %goal compilation_module;
 
@@ -119,8 +139,7 @@ statement
     = module_statement.stmt {: return stmt; :}
     | import_statement.stmt {: return stmt; :}
     | type_declaration.stmt {: return stmt; :}
-    | error NEWLINE         {: return new Ast.ErrorStatement(); :}
-    | NEWLINE               {:  :}
+    | error SEMICOLON       {: return new Ast.ErrorStatement(); :}
     ;
 
 modifier
@@ -130,28 +149,29 @@ modifier
     ;
 
 module_statement
-    = MODULE name NEWLINE {: return new Ast.ModuleStatement(); :}
+    = MODULE name SEMICOLON {: return new Ast.ModuleStatement(); :}
     ;
 
 import_statement
-    = IMPORT name NEWLINE {: return new Ast.ImportStatement(); :}
+    = IMPORT name SEMICOLON {: return new Ast.ImportStatement(); :}
     ;
 
 type_declaration
     = class_declaration.declaration {: return declaration; :}
+    | error CLOSE_BRACE SEMICOLON   {: return new Ast.ErrorTypeDeclaration(); :}
     ;
 
 class_declaration
     = modifier.modifiers* CLASS ID.name base_class.base? interfaces.interfaces? class_body.body
       {:
-        Option<String> baseClass = base == null ? ScalaUtils.<String>makeNone() : ScalaUtils.makeSome(base);
-        List<String> interfacesList = interfaces == null ? ScalaUtils.<String>makeList() : interfaces;
+        Option<String> baseClass = (unpack(base) == null ? ScalaUtils.<String>makeNone() : ScalaUtils.makeSome(unpack(base)));
+        List<String> interfacesList = (unpack(interfaces) == null ? ScalaUtils.<String>makeList() : unpack(interfaces));
         return new Ast.ClassDeclaration(name.text(), ScalaUtils.asList(modifiers), baseClass, interfacesList);
       :}
     ;
 
 base_class
-    = EXTENDS ID.name {: return name.text(); :}
+    = EXTENDS ID.name {: return pack(name.text()); :}
     ;
 
 interfaces
@@ -159,23 +179,23 @@ interfaces
     ;
 
 interfaces_types_list
-    = ID.name                                  {: return ScalaUtils.<Ast.IdLiteral>makeList(name.text()); :}
-    | interfaces_types_list.list COMMA ID.name {: return ScalaUtils.put(list, name.text()); :}
+    = ID.name                                  {: return pack(ScalaUtils.makeList(name.text())); :}
+    | interfaces_types_list.list COMMA ID.name {: return pack(ScalaUtils.put(unpack(list), name.text())); :}
     ;
 
 class_body
-    = OPEN_BRACE expr* CLOSE_BRACE {: return null; :}
+    = OPEN_BRACE expr* CLOSE_BRACE SEMICOLON {: return null; :}
     ;
 
 name
-    = simple_name.name    {: return ScalaUtils.makeList(name); :}
+    = simple_name.name    {: return name; :}
     | qualified_name.name {: return name; :}
     ;
 
 simple_name
-    = ID.name {: return name.text(); :}
+    = ID.name {: return pack(name.text()); :}
     ;
 
 qualified_name
-    = name.list DOT ID.name {: return ScalaUtils.put(list, name.text()); :}
+    = name.name DOT ID.suffix {: return pack(unpack(name) + "." + suffix.text()); :}
     ;

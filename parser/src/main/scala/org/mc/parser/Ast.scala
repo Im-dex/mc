@@ -66,6 +66,7 @@ object Ast {
     sealed abstract class TypeDeclaration extends Statement with Immutable
 
     final case class ErrorStatement() extends Statement with Immutable
+    final case class ErrorTypeDeclaration() extends TypeDeclaration with Immutable
 
     final case class ModuleStatement() extends Statement with Immutable
     final case class ImportStatement() extends Statement with Immutable

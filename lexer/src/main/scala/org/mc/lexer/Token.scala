@@ -38,12 +38,14 @@ object Token {
     final case class KwImport(position: TokenPosition) extends Token
 
     final case class Semicolon(position: TokenPosition) extends Token
+    final case class Colon(position: TokenPosition) extends Token
     final case class Dot(position: TokenPosition) extends Token
     final case class Comma(position: TokenPosition) extends Token
     final case class OpenParen(position: TokenPosition) extends Token
     final case class CloseParen(position: TokenPosition) extends Token
     final case class OpenBrace(position: TokenPosition) extends Token
     final case class CloseBrace(position: TokenPosition) extends Token
+    final case class Arrow(position: TokenPosition) extends Token
 
     final case class Assign(position: TokenPosition) extends Token
     final case class Plus(position: TokenPosition) extends Token

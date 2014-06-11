@@ -129,12 +129,14 @@ Identifier = [a-zA-Z][a-zA-Z_$0-9]*
 
     // delimiters
     ";"                 { return makeToken(Token.Semicolon.class); }
+    ":"                 { return makeToken(Token.Colon.class); }
     "."                 { return makeToken(Token.Dot.class); }
     ","                 { return makeToken(Token.Comma.class); }
     "("                 { return makeToken(Token.OpenParen.class); }
     ")"                 { return makeToken(Token.CloseParen.class); }
     "{"                 { return makeToken(Token.OpenBrace.class); }
     "}"                 { return makeToken(Token.CloseBrace.class); }
+    "->"                { return makeToken(Token.Arrow.class); }
 
     // operators
     "="                 { return makeToken(Token.Assign.class); }

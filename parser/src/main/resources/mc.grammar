@@ -55,14 +55,14 @@
 :};
 
 %terminals ID, CHAR, STRING, DEC_NUMBER, HEX_NUMBER, BIN_NUMBER, FLOAT_NUMBER, HEX_FLOAT_NUMBER, DOUBLE_NUMBER, HEX_DOUBLE_NUMBER;
-%terminals OPEN_PAREN, CLOSE_PAREN, OPEN_BRACE, CLOSE_BRACE;
-%terminals DOT, SEMICOLON, COMMA, ASSIGN, PLUS, MINUS, TIMES, DIVIDE;
-%terminals VAR, VAL, DEF, CLASS, INTERFACE, PRIVATE, PROTECTED, FINAL, EXTENDS, IMPLEMENTS, OVERRIDE, AS, IS, THIS, SUPER, MODULE, IMPORT;
+%terminals OPEN_PAREN, CLOSE_PAREN, OPEN_BRACE, CLOSE_BRACE, ARROW;
+%terminals SEMICOLON, COLON, DOT, COMMA, ASSIGN, PLUS, MINUS, ASTERISK, DIVIDE, AMP;
+%terminals VAR, VAL, DEF, CLASS, INTERFACE, PRIVATE, PROTECTED, FINAL, EXTENDS, IMPLEMENTS, OVERRIDE, AS, IS, THIS, SUPER, MODULE, IMPORT, REF;
 
 %left OPEN_PAREN, CLOSE_PAREN;
 %right UNARY_MINUS, UNARY_PLUS;
-%left TIMES, DIVIDE;
-%left PLUS, MINUS, TIMES, DIVIDE;
+%left ASTERISK, DIVIDE;
+%left PLUS, MINUS, ASTERISK, DIVIDE;
 %right ASSIGN;
 
 %typeof ID = "Ast.IdLiteral";
@@ -78,10 +78,6 @@
 
 %typeof compilation_module = "Ast.Module";
 
-%typeof expr = "Ast.Expression";
-%typeof sub_expr = "Ast.Expression";
-%typeof const_literal = "Ast.Literal";
-
 %typeof statement = "Ast.Statement";
 %typeof modifier = "Ast.Modifier";
 %typeof module_statement = "Ast.ModuleStatement";
@@ -92,47 +88,30 @@
 %typeof interfaces = "PackedType<List<String>>";
 %typeof interfaces_types_list = "PackedType<List<String>>";
 %typeof class_body = "Object"; // TODO:
+%typeof function_declaration = "Object"; // TODO:
+%typeof function_body = "Object"; // TODO:
 
 %typeof name = "PackedType<String>";
 %typeof simple_name = "PackedType<String>";
 %typeof qualified_name = "PackedType<String>";
 
+%typeof function_result_type = "Object"; // TODO:
+%typeof function_arguments = "Object"; // TODO:
+%typeof function_argument = "Object"; // TODO:
+
+%typeof expr = "Ast.Expression";
+%typeof sub_expr = "Ast.Expression";
+%typeof const_literal = "Ast.Literal";
+
+%typeof type = "Object"; // TODO:
+%typeof value_type = "Object"; // TODO:
+%typeof unique_reference_type = "Object"; // TODO:
+%typeof shared_reference_type = "Object"; // TODO:
+
 %goal compilation_module;
 
 compilation_module
     = statement.statements* {: return new Ast.Module(ScalaUtils.asList(statements)); :}
-    ;
-
-//= expr.e* {: return new Ast.ExpressionList(ScalaUtils.makeList(e)); :}
-
-expr
-    = sub_expr.e SEMICOLON {: return e; :}
-    | SEMICOLON            {: return new Ast.EmptyExpression(); :}
-    | error SEMICOLON      {: return new Ast.ErrorExpression(); :}
-    ;
-
-sub_expr
-    = sub_expr.left PLUS sub_expr.right   {: return new Ast.AddExpression(left, right); :}
-    | sub_expr.left MINUS sub_expr.right  {: return new Ast.SubExpression(left, right); :}
-    | sub_expr.left TIMES sub_expr.right  {: return new Ast.MulExpression(left, right); :}
-    | sub_expr.left DIVIDE sub_expr.right {: return new Ast.DivExpression(left, right); :}
-    | MINUS sub_expr.e @ UNARY_MINUS      {: return new Ast.MinusExpression(e); :}
-    | PLUS sub_expr.e @ UNARY_PLUS        {: return new Ast.PlusExpression(e); :}
-    | OPEN_PAREN sub_expr.e CLOSE_PAREN   {: return new Ast.ParenthesizedExpression(e); :}
-    | ID.value                            {: return new Ast.IdLiteral(getTokenText(value)); :}
-    | const_literal.literal               {: return literal; :}
-    ;
-
-const_literal
-    = STRING.value            {: return new Ast.StringLiteral(getTokenText(value)); :}
-    | CHAR.value              {: return new Ast.CharLiteral(getTokenText(value)); :}
-    | DEC_NUMBER.value        {: return new Ast.DecNumberLiteral(getTokenText(value)); :}
-    | HEX_NUMBER.value        {: return new Ast.HexNumberLiteral(getTokenText(value)); :}
-    | BIN_NUMBER.value        {: return new Ast.BinNumberLiteral(getTokenText(value)); :}
-    | FLOAT_NUMBER.value      {: return new Ast.FloatLiteral(getTokenText(value)); :}
-    | HEX_FLOAT_NUMBER.value  {: return new Ast.HexFloatLiteral(getTokenText(value)); :}
-    | DOUBLE_NUMBER.value     {: return new Ast.DoubleLiteral(getTokenText(value)); :}
-    | HEX_DOUBLE_NUMBER.value {: return new Ast.HexDoubleLiteral(getTokenText(value)); :}
     ;
 
 statement
@@ -184,7 +163,28 @@ interfaces_types_list
     ;
 
 class_body
-    = OPEN_BRACE expr* CLOSE_BRACE SEMICOLON {: return null; :}
+    = OPEN_BRACE function_declaration CLOSE_BRACE SEMICOLON {: return null; :}
+    ;
+
+function_declaration
+    = DEF ID OPEN_PAREN function_arguments? CLOSE_PAREN function_result_type? function_body
+    ;
+
+function_result_type
+    = ARROW type {: return null; :}
+    ;
+
+function_arguments
+    = function_argument {: return null; :}
+    | function_arguments COMMA function_argument {: return null; :}
+    ;
+
+function_argument
+    = REF? ID COLON type {: return null; :}
+    ;
+
+function_body
+    = OPEN_BRACE expr* CLOSE_BRACE {: return null; :}
     ;
 
 name
@@ -198,4 +198,52 @@ simple_name
 
 qualified_name
     = name.name DOT ID.suffix {: return pack(unpack(name) + "." + suffix.text()); :}
+    ;
+
+expr
+    = sub_expr.e SEMICOLON {: return e; :}
+    | SEMICOLON            {: return new Ast.EmptyExpression(); :}
+    | error SEMICOLON      {: return new Ast.ErrorExpression(); :}
+    | error CLOSE_BRACE    {: return new Ast.ErrorExpression(); :}
+    ;
+
+sub_expr
+    = sub_expr.left PLUS sub_expr.right   {: return new Ast.AddExpression(left, right); :}
+    | sub_expr.left MINUS sub_expr.right  {: return new Ast.SubExpression(left, right); :}
+    | sub_expr.left ASTERISK sub_expr.right  {: return new Ast.MulExpression(left, right); :}
+    | sub_expr.left DIVIDE sub_expr.right {: return new Ast.DivExpression(left, right); :}
+    | MINUS sub_expr.e @ UNARY_MINUS      {: return new Ast.MinusExpression(e); :}
+    | PLUS sub_expr.e @ UNARY_PLUS        {: return new Ast.PlusExpression(e); :}
+    | OPEN_PAREN sub_expr.e CLOSE_PAREN   {: return new Ast.ParenthesizedExpression(e); :}
+    | ID.value                            {: return new Ast.IdLiteral(getTokenText(value)); :}
+    | const_literal.literal               {: return literal; :}
+    ;
+
+const_literal
+    = STRING.value            {: return new Ast.StringLiteral(getTokenText(value)); :}
+    | CHAR.value              {: return new Ast.CharLiteral(getTokenText(value)); :}
+    | DEC_NUMBER.value        {: return new Ast.DecNumberLiteral(getTokenText(value)); :}
+    | HEX_NUMBER.value        {: return new Ast.HexNumberLiteral(getTokenText(value)); :}
+    | BIN_NUMBER.value        {: return new Ast.BinNumberLiteral(getTokenText(value)); :}
+    | FLOAT_NUMBER.value      {: return new Ast.FloatLiteral(getTokenText(value)); :}
+    | HEX_FLOAT_NUMBER.value  {: return new Ast.HexFloatLiteral(getTokenText(value)); :}
+    | DOUBLE_NUMBER.value     {: return new Ast.DoubleLiteral(getTokenText(value)); :}
+    | HEX_DOUBLE_NUMBER.value {: return new Ast.HexDoubleLiteral(getTokenText(value)); :}
+    ;
+
+type
+    = value_type            {: return null; :}
+    | unique_reference_type {: return null; :}
+    | shared_reference_type {: return null; :}
+    ;
+
+value_type
+    = name {: return null; :}
+    ;
+unique_reference_type
+    = name ASTERISK {: return null; :}
+    ;
+
+shared_reference_type
+    = name AMP {: return null; :}
     ;

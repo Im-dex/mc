@@ -36,6 +36,7 @@ object Token {
     final case class KwSuper(position: TokenPosition) extends Token
     final case class KwModule(position: TokenPosition) extends Token
     final case class KwImport(position: TokenPosition) extends Token
+    final case class KwRef(position: TokenPosition) extends Token
 
     final case class Semicolon(position: TokenPosition) extends Token
     final case class Colon(position: TokenPosition) extends Token
@@ -52,6 +53,7 @@ object Token {
     final case class Minus(position: TokenPosition) extends Token
     final case class Asterisk(position: TokenPosition) extends Token
     final case class Div(position: TokenPosition) extends Token
+    final case class Amp(position: TokenPosition) extends Token
 }
 
 sealed abstract class Token extends Immutable {

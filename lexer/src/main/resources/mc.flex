@@ -124,6 +124,7 @@ Identifier = [a-zA-Z][a-zA-Z_$0-9]*
     "super"             { return makeToken(Token.KwSuper.class); }
     "module"            { return makeToken(Token.KwModule.class); }
     "import"            { return makeToken(Token.KwImport.class); }
+    "ref"               { return makeToken(Token.KwRef.class); }
 
     {Identifier}        { return makeToken(Token.Id.class); }
 
@@ -144,6 +145,7 @@ Identifier = [a-zA-Z][a-zA-Z_$0-9]*
     "-"                 { return makeToken(Token.Minus.class); }
     "*"                 { return makeToken(Token.Asterisk.class); }
     "/"                 { return makeToken(Token.Div.class); }
+    "&"                 { return makeToken(Token.Amp.class); }
 
     .                   { return makeToken(Token.BadCharacter.class); }
 }
